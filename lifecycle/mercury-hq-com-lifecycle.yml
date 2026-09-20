@@ -1,0 +1,50 @@
+generated: '2026-09-19'
+method: searched
+source:
+- openapi/mercury-hq-com-x402-storefront-openapi.yml (info.version "1", info.x-spec mercury-storefront/1, no deprecated flags)
+- https://network.mercury-hq.com/terms (effective 2026-06-04; no SLA; "We may change pricing, routes, or availability")
+- https://network.mercury-hq.com/health (liveness JSON) and probes of /status, /changelog (404)
+- https://network.mercury-hq.com/.well-known/x402 (x402Version 2, generatedAt per request), live 402 (x402Version 1)
+- POST /mcp initialize (protocolVersion 2025-06-18, server 1.0.0); agent card (protocolVersion 0.3.0, version 1.0.0)
+- https://registry.npmjs.org/mercury-x402-mcp (1.0.0 2026-06-05, 1.0.1 2026-06-07); response header server Fly/57f2b87df (2026-09-16)
+versioning:
+  scheme: unversioned paths; document-level version strings
+  storefront_api:
+    scheme: info.version "1" and a spec identifier "mercury-storefront/1" carried in info.x-spec, x-payment-info.spec, /.well-known/x402, /catalog metadata and the agent card metadata
+    current_version: '1'
+    path_prefix: none (/buy/<sku>)
+    detail: No versioning policy is published. The provider's stated contract is that /catalog, /openapi.json, /.well-known/x402 and the 402 challenge are generated from one catalog object, so the OpenAPI is regenerated live rather than released.
+  x402_protocol: 'discovery document x402Version 2; 402 challenge body x402Version 1 (skew recorded in conformance/)'
+  a2a_protocol_version: 0.3.0 (card version 1.0.0)
+  mcp_protocol_version: '2025-06-18 (serverInfo mercury-x402 1.0.0)'
+  stdio_package: mercury-x402-mcp 1.0.1 (2026-06-07), not republished since
+  server_build: Fly/57f2b87df (2026-09-16) from the server response header
+deprecation:
+  policy_url: null
+  policy_published: false
+  sunset_header: unobserved
+  deprecation_header: unobserved
+  detail: >-
+    No deprecation policy and no deprecated operations. The terms reserve the right to "change pricing,
+    routes, or availability" without a notice period. The nine mint SKUs that llms.txt still advertises
+    are not deprecated but gated: absent from /catalog and the OpenAPI, answering 503 mint-disabled.
+deprecated_operations: []
+maturity:
+  stated: early / best-effort
+  evidence: >-
+    The provider says so on every page: "Built solo, early days", "N=0 external buyers today", "0 paying
+    customers so far", "This is an early service provided on a best-effort, AS-IS basis" (terms). /proof
+    reports "no on-chain settlement recorded yet" and the treasury page shows $0.00 external earnings.
+    ASIC company registration is described as in progress. The API-key paid tier is called "Building" on
+    /university and live on /developers and /pricing.
+sla:
+  url: https://network.mercury-hq.com/terms
+  public_uptime_target: null
+  notes: 'Explicitly none: "no uptime guarantee or warranty"; machine-readable GET /terms (Accept: application/json) returns sla:false, warranty "none (best-effort, as-is)", liability capped at the amount paid for the call(s).'
+status_page: null
+status_page_note: >-
+  No status page. /status is 404; /health returns a liveness JSON ({ok, service mercury_x402_seller,
+  seller, network, payTo, facilitator, mintEnabled false, catalogCount 28, ts}) which is a health probe,
+  not a status page, so no StatusPage pointer is emitted. The provider sells an availability probe
+  (/buy/availability) for OTHER sites but publishes none for itself.
+changelog: changelog/mercury-hq-com-changelog.yml

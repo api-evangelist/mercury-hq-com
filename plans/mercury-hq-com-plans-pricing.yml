@@ -1,0 +1,296 @@
+generated: '2026-09-19'
+method: probed
+source: https://network.mercury-hq.com/catalog
+sources:
+- https://network.mercury-hq.com/catalog (free JSON catalog; saved verbatim as plans/mercury-hq-com-catalog.json)
+- https://network.mercury-hq.com/.well-known/x402 (x402 v2 discovery doc, 18 resources with priceUsd)
+- https://network.mercury-hq.com/openapi.json (x-payment-info / x-x402 per operation, incl. the fetch/plus/pro tiers
+  of /buy/fetch)
+- live unpaid GET https://network.mercury-hq.com/buy/fetch?url=https://example.com -> 402 (maxAmountRequired 3000
+  = $0.003 USDC, 6 decimals)
+- https://network.mercury-hq.com/pricing (human page; API-key subscription tiers; method searched for that block)
+- https://network.mercury-hq.com/developers and /university/developers (credit model, free sandbox key, top-up)
+- https://network.mercury-hq.com/terms (non-refundable, no SLA)
+note: 'MERCURY publishes two price surfaces for the same 18 paid routes. (1) The x402 rail: a fixed per-call USDC
+  price per SKU, machine-readable in /catalog, /.well-known/x402 and the OpenAPI, and carried in the live 402 challenge
+  (the provider states all four are generated from one catalog object so they cannot drift; the challenge for /buy/fetch
+  carried maxAmountRequired 3000 base units = $0.003, matching). /buy/fetch additionally declares three x402 tiers
+  in its x-x402.accepts (fetch $0.003, plus $0.006 with markdown + link graph, pro $0.012 with structured extract).
+  (2) The API-key rail: four monthly tiers on /pricing billed through Stripe Checkout, metered in credits at 1 credit
+  = $0.001 (a $0.005 SKU costs 5 credits), plus one-time credit top-ups ($1 = 1,000 credits, $5-$500). The provider
+  is candid that it has N=0 external buyers and 0 paying subscribers; the /university hub still labels the API-key
+  paid tier "Building" while /developers and /pricing describe it as live with Stripe - recorded as stated. All
+  payments are NON-REFUNDABLE once settled and there is no SLA (terms, effective 2026-06-04). The nine in-game mint
+  SKUs (matter, antimatter, dark-matter, brick, agent, shelf, wand, api-render, api-oracle) that llms.txt lists
+  at $0.01-$1.00 are NOT in /catalog or the OpenAPI and answer 503 mint-disabled with Retry-After 3600 before any
+  charge; they are listed below as unavailable, not as plans.'
+plan_count: 4
+currency: USD
+billing_model: per-call (x402 USDC micropayment or prepaid credits); optional monthly subscription tiers on the
+  API-key rail
+payment_rails:
+- key: x402
+  method: x402 v1 challenge / v2 discovery
+  network: base (eip155:8453)
+  asset: USDC 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  account_required: false
+- key: api_key
+  method: 'Authorization: Bearer mk_test_ / mk_live_'
+  billing: Stripe Checkout (subscription) and Stripe one-time credit top-up (POST /api/dev/topup?key=mk_live_...&usd=10)
+  credit_unit: 1 credit = $0.001
+  account_required: a key (free, POST /api/dev/keys?live=false)
+plans:
+- name: Sandbox
+  price: 0
+  currency: USD
+  period: month
+  included_quota: 100 credits/mo
+  rate_limit: 5/min
+  proxy_take: 10%
+  key_prefix: mk_test_
+  limits: free test key; 100 credits to evaluate the whole API; issuance capped at 20 keys per IP per hour
+  source: https://network.mercury-hq.com/pricing
+- name: Pro
+  price: 29
+  currency: USD
+  period: month
+  included_quota: 50k credits/mo
+  rate_limit: 120/min
+  proxy_take: 8%
+  key_prefix: mk_live_
+  overage: one-time credit top-up $1 = 1,000 credits ($5-$500)
+  source: https://network.mercury-hq.com/pricing
+- name: Business
+  price: 199
+  currency: USD
+  period: month
+  included_quota: 1M credits/mo
+  rate_limit: 600/min
+  proxy_take: 6%
+  key_prefix: mk_live_
+  overage: one-time credit top-up $1 = 1,000 credits ($5-$500)
+  source: https://network.mercury-hq.com/pricing
+- name: Enterprise
+  price: 1500
+  currency: USD
+  period: month
+  included_quota: unmetered credits/mo
+  rate_limit: — (none stated)
+  proxy_take: 5%
+  key_prefix: mk_live_
+  source: https://network.mercury-hq.com/pricing
+per_call_prices:
+- sku: signal
+  route: GET /buy/signal
+  price: $0
+  price_usd: 0
+  kind: data
+  metered: false
+  operationId: buy_signal
+  category: null
+- sku: web-fetch
+  route: GET /buy/fetch
+  price: $0.003
+  price_usd: 0.003
+  kind: api
+  metered: true
+  operationId: buy_web_fetch
+  category: data/web-read
+- sku: cited-markdown
+  route: GET /buy/markdown
+  price: $0.005
+  price_usd: 0.005
+  kind: api
+  metered: true
+  operationId: buy_cited_markdown
+  category: data/web-read
+- sku: cited-metadata
+  route: GET /buy/metadata
+  price: $0.006
+  price_usd: 0.006
+  kind: api
+  metered: true
+  operationId: buy_cited_metadata
+  category: null
+- sku: cited-links
+  route: GET /buy/links
+  price: $0.005
+  price_usd: 0.005
+  kind: api
+  metered: true
+  operationId: buy_cited_links
+  category: null
+- sku: cited-robots
+  route: GET /buy/robots
+  price: $0.005
+  price_usd: 0.005
+  kind: api
+  metered: true
+  operationId: buy_cited_robots
+  category: null
+- sku: cited-diff
+  route: GET /buy/diff
+  price: $0.006
+  price_usd: 0.006
+  kind: api
+  metered: true
+  operationId: buy_cited_diff
+  category: null
+- sku: cited-notarize
+  route: GET /buy/notarize
+  price: $0.008
+  price_usd: 0.008
+  kind: api
+  metered: true
+  operationId: buy_cited_notarize
+  category: data/provenance
+- sku: cited-headers
+  route: GET /buy/headers
+  price: $0.005
+  price_usd: 0.005
+  kind: api
+  metered: true
+  operationId: buy_cited_headers
+  category: null
+- sku: cited-table
+  route: GET /buy/table
+  price: $0.006
+  price_usd: 0.006
+  kind: api
+  metered: true
+  operationId: buy_cited_table
+  category: data/web-read
+- sku: cited-feed
+  route: GET /buy/feed
+  price: $0.005
+  price_usd: 0.005
+  kind: api
+  metered: true
+  operationId: buy_cited_feed
+  category: null
+- sku: cited-availability
+  route: GET /buy/availability
+  price: $0.005
+  price_usd: 0.005
+  kind: api
+  metered: true
+  operationId: buy_cited_availability
+  category: null
+- sku: cited-validate
+  route: GET /buy/validate
+  price: $0.005
+  price_usd: 0.005
+  kind: api
+  metered: true
+  operationId: buy_cited_validate
+  category: data/validation
+- sku: cited-batch
+  route: GET /buy/batch
+  price: $0.02
+  price_usd: 0.02
+  kind: api
+  metered: true
+  operationId: buy_cited_batch
+  category: data/web-read
+- sku: cited-sitemap
+  route: GET /buy/sitemap
+  price: $0.01
+  price_usd: 0.01
+  kind: api
+  metered: true
+  operationId: buy_cited_sitemap
+  category: null
+- sku: cited-dns
+  route: GET /buy/dns
+  price: $0.006
+  price_usd: 0.006
+  kind: api
+  metered: true
+  operationId: buy_cited_dns
+  category: null
+- sku: cited-readability
+  route: GET /buy/readability
+  price: $0.005
+  price_usd: 0.005
+  kind: api
+  metered: true
+  operationId: buy_cited_readability
+  category: data/web-read
+- sku: cited-redirect
+  route: GET /buy/redirect
+  price: $0.005
+  price_usd: 0.005
+  kind: api
+  metered: true
+  operationId: buy_cited_redirect
+  category: null
+fetch_tiers_x402:
+- tier: fetch
+  price: $0.003
+  includes: clean page text + signed provenance receipt
+- tier: plus
+  price: $0.006
+  includes: + markdown structure + outbound-link graph
+- tier: pro
+  price: $0.012
+  includes: + deterministic structured-extract JSON record
+free_tier:
+  name: Free discovery and verification
+  price: 0
+  included: GET /catalog, /.well-known/x402, /x402/discovery, /openapi.json, /llms.txt, /manifest, /health, /vs,
+    /market, /scoreboard, /buy/signal (demo data), /x402/attestation/sample, /x402/verify + POST /verify, MCP initialize
+    + tools/list, A2A message/send free preview
+  account_required: false
+unavailable_skus:
+  note: 'listed in llms.txt and /university/docs as Building; absent from /catalog and the OpenAPI; GET returns
+    503 {reason: mint-disabled, deliverable: false} with Retry-After 3600 and no charge'
+  items:
+  - sku: matter
+    price: $0.01
+  - sku: antimatter
+    price: $0.05
+  - sku: dark-matter
+    price: $0.25
+  - sku: brick
+    price: $0.01
+  - sku: agent
+    price: $1.00
+  - sku: shelf
+    price: $0.10
+  - sku: wand
+    price: $0.50
+  - sku: api-render
+    price: $0.02
+  - sku: api-oracle
+    price: $0.10
+refunds:
+  refundable: false
+  source: 'https://network.mercury-hq.com/terms ("NON-REFUNDABLE once settled - you pay per ATTEMPT"; machine-readable
+    GET /terms with Accept: application/json returns refundable:false, sla:false)'
+x-evidence:
+  fetched: '2026-09-19'
+  probes:
+  - url: https://network.mercury-hq.com/catalog
+    status: 200
+    content_type: application/json
+  - url: https://network.mercury-hq.com/.well-known/x402
+    status: 200
+    content_type: application/json
+  - url: https://network.mercury-hq.com/buy/fetch?url=https://example.com
+    method: GET (unpaid)
+    status: 402
+    maxAmountRequired: '3000'
+  - url: https://network.mercury-hq.com/buy/matter
+    method: GET (unpaid)
+    status: 503
+    retry_after: '3600'
+  - url: https://network.mercury-hq.com/pricing
+    status: 200
+    content_type: text/html
+  - url: https://network.mercury-hq.com/terms
+    status: 200
+    accept: application/json
+    refundable: false

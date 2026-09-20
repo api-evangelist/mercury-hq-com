@@ -1,0 +1,151 @@
+generated: '2026-09-19'
+method: probed
+source: >-
+  openapi/mercury-hq-com-x402-storefront-openapi.yml, https://network.mercury-hq.com/.well-known/agent-card.json,
+  /.well-known/x402, /.well-known/erc8004.json, /.well-known/mercury-attestation, /.well-known/security.txt,
+  /llms.txt, /robots.txt, live unpaid GET /buy/fetch (402), POST /mcp initialize + tools/list, POST /a2a
+  (tasks/get, message/send), GET /university/docs with Accept: text/markdown, and the /.well-known/ sweep in
+  well-known/mercury-hq-com-well-known.yml (all 2026-09-19).
+description: >-
+  Cross-cutting and domain standards MERCURY's public surface conforms to, each with the document or
+  response that decided it. The domain-standard signatures here are read from the contract and the wire:
+  the OpenAPI declares x402 payment terms per operation (x-payment-info / x-x402 with CAIP-2 network ids
+  and an ERC-20 asset address) and the live 402 carries an x402 v1 accepts[] body; the agent card and the
+  ERC-8004 registration file carry an on-chain agent identity. No compliance programme or certification
+  (SOC 2, ISO 27001, PCI DSS, HIPAA) is published on /trust or anywhere else - the trust page is an
+  operator-identity and verify-it-yourself page - so no Compliance pointer is emitted.
+standards:
+- id: x402
+  conforms: true
+  version: challenge x402Version 1; discovery document x402Version 2
+  evidence: >-
+    DOMAIN STANDARD SIGNATURE. Contract: every paid operation in the OpenAPI carries x-payment-info
+    {protocols: [x402], scheme: exact, price, currency USDC, network base, networkCaip2 eip155:8453, asset
+    0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913, payTo, facilitator https://api.cdp.coinbase.com/platform/v2/x402,
+    x402Version 1} and an x-x402 block with accepts[] tiers; the document-level x-payment-info repeats it.
+    Wire: unpaid GET /buy/fetch answered HTTP 402 application/json {x402Version: 1, error: "X-PAYMENT header
+    is required", accepts: [{scheme: exact, network: base, maxAmountRequired: "3000", resource, payTo,
+    maxTimeoutSeconds: 60, asset, outputSchema{input,output}, extra{name: USD Coin, version: 2}}]}.
+    Discovery: /.well-known/x402 (and /x402/discovery) is an x402Version 2 service document with 18
+    resources, seller, payTo, facilitator and bazaarIndexing; the card's securitySchemes.x402 and the
+    ERC-8004 file's x402 endpoint point at the same /buy/fetch resource. The 402 body is x402 v1 shape
+    (X-PAYMENT header, maxAmountRequired) while the discovery doc declares v2 - recorded as a version skew.
+- id: a2a
+  conforms: true
+  version: 0.3.0 (declared protocolVersion)
+  evidence: >-
+    Agent card at the RFC 8615 canonical path and the legacy /.well-known/agent.json (byte-identical):
+    protocolVersion 0.3.0, capabilities object, skills array of 1, preferredTransport JSONRPC,
+    additionalInterfaces, defaultInputModes/defaultOutputModes, provider, documentationUrl; graded
+    conformant in a2a/mercury-hq-com-a2a.yml. POST /a2a message/send returned a JSON-RPC result (free
+    preview); tasks/get returned -32601 with the message "Mercury implements message/send", so only the
+    minimum method is served. Deviation: securitySchemes.x402 uses a non-A2A scheme type "x402".
+- id: mcp
+  conforms: true
+  version: '2025-06-18 (negotiated protocolVersion)'
+  evidence: >-
+    POST https://network.mercury-hq.com/mcp initialize returned {protocolVersion: 2025-06-18, capabilities:
+    {tools: {}}, serverInfo: {name: mercury-x402, version: 1.0.0}, instructions}; tools/list returned 18
+    tools each with name, description and a JSON Schema inputSchema, unauthenticated; an unknown tool name
+    on tools/call returned a result with isError true. Streamable HTTP (plain application/json responses,
+    no SSE framing observed). No RFC 9728 protected-resource metadata (auth is a static Bearer key).
+- id: json-rpc-2.0
+  conforms: true
+  evidence: >-
+    Both /a2a and /mcp responses carry jsonrpc "2.0", echo the request id and use the reserved -32601 code
+    for unsupported methods.
+- id: erc-8004
+  conforms: true
+  evidence: >-
+    DOMAIN STANDARD SIGNATURE (agent identity): /.well-known/erc8004.json is an ERC-8004 AgentRegistration
+    {type, name, description, url, image, endpoints[{a2a, x402}], trustModels [reputation], registrations
+    [{agentId 54791, agentRegistry eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432}]}; the agent card
+    repeats registrations[] and trustModels[] and names the reputation registry 0x8004BAa1...9b63 and an
+    on-chain /reviews page. The on-chain registration itself was not verified against the contract.
+- id: eip-191-signed-provenance
+  conforms: true
+  evidence: >-
+    /.well-known/mercury-attestation pins the signer 0xACB40253BD71Bb9a5d491b2c6EFF755F2A33Fc75, alg
+    EIP-191-personal_sign, a message template (url, status, sha256, fetchedAt, nonce) and a three-step
+    offline verification recipe; the OpenAPI's 200 schema for /buy/fetch declares the attestation object
+    (keyId, alg, address, contentHash, nonce, signedAt, signature, verify{message, howTo}); a free sample
+    receipt is served at /x402/attestation/sample and a verifier at /x402/verify + POST /verify. The
+    signature itself was not recomputed here.
+- id: caip-2
+  conforms: true
+  evidence: networkCaip2 "eip155:8453" in the OpenAPI x-payment-info, /.well-known/x402, the agent card (securitySchemes.x402.network, registrations[].agentRegistry) and /terms JSON (caip2).
+- id: openapi-3.1
+  conforms: true
+  evidence: >-
+    /openapi.json declares openapi 3.1.0 and parses; 19 operations, every one with operationId, summary,
+    description, tags and 200 + 402 responses (the free /buy/signal declares 200 only); JSON Schema 2020-12
+    style type arrays ("type": ["string","number","boolean","null"]) in the extract schema. No components,
+    no securitySchemes, no examples, no servers variables; servers[] is https://network.mercury-hq.com.
+- id: llms-txt
+  conforms: true
+  evidence: https://network.mercury-hq.com/llms.txt (7,736 bytes) follows the llms.txt shape - H1, blockquote summary, H2 sections with markdown link lists (27 products, discovery links); saved verbatim to llms/mercury-hq-com-llms.txt. Absent on mercury-hq.com (404).
+- id: markdown-content-negotiation
+  conforms: true
+  evidence: >-
+    GET https://network.mercury-hq.com/university/docs with Accept: text/markdown returned 200
+    text/markdown; charset=utf-8 (11,193 bytes, an "agent twin" of the HTML page, also available as
+    ?format=md per the page footer). GET /terms with Accept: application/json returns a structured
+    mercury-terms/1 JSON document (refundable false, sla false, governingLaw, points[]).
+- id: rfc8615-well-known
+  conforms: true
+  evidence: >-
+    Served under /.well-known/ on network.mercury-hq.com: security.txt, agent-card.json, agent.json, x402,
+    erc8004.json, mercury-attestation. Absent: openid-configuration, oauth-authorization-server,
+    oauth-protected-resource, api-catalog, ai-plugin.json, ucp.json, acp.json, aauth-resource.json, apis.json
+    (well-known/mercury-hq-com-well-known.yml).
+- id: rfc9116-security-txt
+  conforms: partial
+  evidence: >-
+    /.well-known/security.txt served (200, text/plain) with Contact mailto:mercuryuser@proton.me, Canonical
+    and Preferred-Languages, but WITHOUT the Expires field RFC 9116 section 2.5.5 makes mandatory, and with
+    no Policy, Encryption or Acknowledgments lines; not signed.
+- id: robots-txt
+  conforms: true
+  evidence: >-
+    https://network.mercury-hq.com/robots.txt allows all agents and, unusually, lists the machine-discovery
+    documents as comments and declares "Sitemap: https://network.mercury-hq.com/openapi.json" (an OpenAPI in
+    the Sitemap slot, which is not a sitemap).
+- id: rfc9727-api-catalog
+  conforms: false
+  evidence: /.well-known/api-catalog and /.well-known/api-catalog.json are 404 on every host; the provider's own catalog is the non-standard /catalog JSON.
+- id: apis-json
+  conforms: false
+  evidence: /apis.json, /apis.yml and /.well-known/apis.json are 404 on every host.
+- id: oauth2
+  conforms: false
+  evidence: no securitySchemes in the OpenAPI; /.well-known/oauth-authorization-server 404 on every host; the API-key rail is a static Bearer mk_ token and the MCP server gates tools/call on it.
+- id: oidc
+  conforms: false
+  evidence: /.well-known/openid-configuration 404 on every host.
+- id: rfc9728-oauth-protected-resource
+  conforms: false
+  evidence: /.well-known/oauth-protected-resource 404 on network.mercury-hq.com, which is the MCP server host.
+- id: agentic-commerce-ucp-acp
+  conforms: false
+  evidence: /.well-known/ucp.json and /.well-known/acp.json 404 on every host; the storefront's own discovery document is the x402 /.well-known/x402, which is a different protocol.
+- id: rfc9457-problem-details
+  conforms: false
+  evidence: >-
+    Errors are proprietary JSON - {ok:false, error, status, discovery, hint} on 404, {ok:false, error,
+    reason, deliverable} on 503, {x402Version, error, accepts[]} on 402, {error} on 401; no
+    application/problem+json anywhere (errors/mercury-hq-com-problem-types.yml).
+- id: rfc8594-sunset
+  conforms: false
+  evidence: no deprecated operations, no Deprecation or Sunset header observed, no deprecation policy published (lifecycle/mercury-hq-com-lifecycle.yml).
+- id: idempotency
+  conforms: false
+  evidence: no Idempotency-Key or replay mechanism is documented; the terms say "you pay per ATTEMPT" and payments are non-refundable, so a retried paid call is a second purchase (conventions/mercury-hq-com-conventions.yml).
+- id: pagination
+  conforms: na
+  evidence: no list-returning operation; every route returns one record per call (batch returns at most 20 items in one response with a limit parameter but no cursor).
+- id: rate-limit-headers
+  conforms: false
+  evidence: no RateLimit-* / X-RateLimit-* header on any probed response; limits are stated per tier on /pricing only (rate-limits/mercury-hq-com-rate-limits.yml).
+- id: compliance-certifications
+  conforms: false
+  evidence: /trust names the operator (Mercury Holdings Pty Ltd, Queensland; ASIC registration in progress), the settlement wallet and the attestation key, and states "no payload retention"; it names no SOC 2, ISO 27001, PCI DSS, HIPAA or GDPR programme. No Compliance pointer emitted.

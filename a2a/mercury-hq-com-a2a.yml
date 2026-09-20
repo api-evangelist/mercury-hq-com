@@ -1,0 +1,88 @@
+generated: '2026-09-19'
+method: probed
+source: https://network.mercury-hq.com/.well-known/agent-card.json
+discovery:
+  path: /.well-known/agent-card.json
+  canonical: true
+  host: network.mercury-hq.com
+  legacy_path_also_served: /.well-known/agent.json
+  legacy_identical: true
+  registry_listing: https://a2aregistry.org (harvest source; 415 agents fetched 2026-09-19; listed as "MERCURY Web Fetch" by author MERCURY)
+  also_referenced_from:
+  - https://network.mercury-hq.com/.well-known/erc8004.json (endpoints[] protocol a2a -> this card)
+  - https://network.mercury-hq.com/a2a (GET answers 307 Temporary Redirect to the card)
+  - https://network.mercury-hq.com/developers, /pricing and /university/docs footer "Machine discovery" links
+  not_served_on:
+  - host: mercury-hq.com
+    status: 404
+    note: the registrable domain is a static landing page; /.well-known/agent-card.json and /.well-known/agent.json both 404 (text/html, 153 bytes)
+  - host: www.mercury-hq.com
+    status: 404
+conformance:
+  spec: A2A 1.0.0
+  grade: conformant
+  protocol_version: 0.3.0
+  preferred_transport: JSONRPC
+  checks:
+    capabilities_is_object: true
+    protocolVersion_present: true
+    skills_is_array: true
+    preferredTransport_present: true
+    defaultInputModes_present: true
+    defaultOutputModes_present: true
+    additionalInterfaces_present: true
+    provider_present: true
+    documentationUrl_present: true
+  deviations:
+  - securitySchemes.x402 uses type "x402" (with scheme, network, asset fields), which is not one of the A2A SecurityScheme types (apiKey, http, oauth2, openIdConnect, mutualTLS); an A2A client that validates scheme types will not recognise it. Not a hard-check failure.
+  - non-standard top-level keys registrations[] and trustModels[] (ERC-8004 fields carried on the card) and a metadata block (spec mercury-storefront/1, x402 terms, discovery[], erc8004{}).
+  - the declared JSON-RPC endpoint implements message/send only; tasks/get returns -32601 "method 'tasks/get' not supported - Mercury implements message/send" (see endpoint_probe).
+  - capabilities.streaming, pushNotifications and stateTransitionHistory are all false (declared honestly; not a failure).
+card:
+  name: MERCURY Web Fetch
+  url: https://network.mercury-hq.com/a2a
+  version: 1.0.0
+  provider:
+    organization: MERCURY
+    url: https://network.mercury-hq.com
+  documentationUrl: https://network.mercury-hq.com/catalog
+  skills: 1
+  skill_ids: [web-fetch]
+  capabilities: {streaming: false, pushNotifications: false, stateTransitionHistory: false}
+  input_modes: [text/plain]
+  output_modes: [application/json, text/plain]
+  security_schemes:
+    x402: {type: x402, scheme: exact, network: 'eip155:8453', asset: USDC, price: '$0.003 per call', settlement: 'https://api.cdp.coinbase.com/platform/v2/x402'}
+  file: mercury-hq-com-agent-card.json
+  metadata:
+    spec: mercury-storefront/1
+    x402_resource: https://network.mercury-hq.com/buy/fetch
+    x402_price: '$0.003'
+    x402_network: base (eip155:8453), USDC, testnet false
+    payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+    discovery: [https://network.mercury-hq.com/.well-known/x402, https://network.mercury-hq.com/catalog, https://network.mercury-hq.com/openapi.json]
+    erc8004:
+      agentId: '54791'
+      chain: 'eip155:8453'
+      identityRegistry: '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432'
+      reputationRegistry: '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63'
+      registrationFile: https://network.mercury-hq.com/.well-known/erc8004.json
+      reviews: https://network.mercury-hq.com/reviews
+endpoint_probe:
+  url: https://network.mercury-hq.com/a2a
+  transport: JSON-RPC 2.0 over HTTPS POST
+  get_status: 307 Temporary Redirect -> /.well-known/agent-card.json
+  methods_observed:
+  - {method: tasks/get, result: "error -32601 method 'tasks/get' not supported - Mercury implements message/send", http_status: 200}
+  - {method: message/send, result: 'result {role: agent, parts: [{kind: text, text: "✓ Example Domain - HTTP 200 · https://example.com ↑ free preview. Full clean text + offline-verifiable SIGNED provenance receipt -> pay $0.003/call via x402 ..."}]}', http_status: 200, note: 'invoked once with "Fetch https://example.com"; the unpaid call returns a free preview (title + status) and points at the paid /buy/fetch route; no payment was made'}
+  credentials: none required for the free preview; the card's x402 scheme applies to the paid result
+x-evidence:
+  fetched: '2026-09-19'
+  url: https://network.mercury-hq.com/.well-known/agent-card.json
+  http_status: 200
+  content_type: application/json; charset=utf-8
+  content_length: 3264
+  server: Fly/57f2b87df (2026-09-16) via fly.io (Express)
+  legacy_url: https://network.mercury-hq.com/.well-known/agent.json
+  legacy_http_status: 200
+  legacy_identical: true

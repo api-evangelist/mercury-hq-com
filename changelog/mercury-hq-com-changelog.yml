@@ -1,0 +1,44 @@
+generated: '2026-09-19'
+method: probed
+source: https://registry.npmjs.org/mercury-x402-mcp
+sources:
+- https://registry.npmjs.org/mercury-x402-mcp (time: 1.0.0 2026-06-05, 1.0.1 2026-06-07; README says 17 tools)
+- https://network.mercury-hq.com/terms and /privacy (effective / last updated 2026-06-04)
+- https://network.mercury-hq.com/market (marketRead asOf 2026-06)
+- POST https://network.mercury-hq.com/mcp tools/list (18 tools on 2026-09-19) and /health (catalogCount 28)
+- response header server Fly/57f2b87df (2026-09-16)
+- probes of /changelog (404), /status (404); no GitHub org or releases page exists
+description: >-
+  MERCURY publishes no changelog, release notes or version history (/changelog is 404; there is no GitHub
+  org). The dated facts below are read from machine sources - registry timestamps, document effective
+  dates and live counts - so the scheme is honest but coarse. The one API-level change evidenced is the
+  growth of the paid catalog from the 17 tools the June stdio package describes to the 18 tools / 19
+  services live in September (cited-dns is the addition: it is the only SKU with a domain-first
+  parameter shape and its own "Domain" faculty on /university).
+scheme: none published; live-generated OpenAPI (info.version "1"); server build id in the response header
+current_version:
+  storefront_api: '1 (mercury-storefront/1)'
+  hosted_mcp_server: 1.0.0 (protocol 2025-06-18)
+  stdio_package: 1.0.1
+  agent_card: 1.0.0 (A2A 0.3.0)
+  server_build: Fly/57f2b87df (2026-09-16)
+entries:
+- version: server build 2026-09-16
+  date: '2026-09-16'
+  breaking: false
+  additions: [18 tools on the hosted MCP server and 19 live services in /catalog and the OpenAPI (cited-dns present), /health catalogCount 28]
+  highlights: 'Observed state on 2026-09-19; the Fly build date is the latest deploy evidence available.'
+- version: mercury-x402-mcp 1.0.1
+  date: '2026-06-07'
+  breaking: false
+  additions: [npm stdio MCP server describing 17 paid tools built live from the catalog plus free mercury_catalog and mercury_verify]
+  highlights: 'Last package release; its discovery links point at the mercury-x402-jed.fly.dev origin rather than network.mercury-hq.com.'
+- version: mercury-x402-mcp 1.0.0
+  date: '2026-06-05'
+  breaking: false
+  additions: [first npm release]
+- version: terms and privacy 2026-06-04
+  date: '2026-06-04'
+  breaking: false
+  additions: [Terms of service effective 2026-06-04 (non-refundable, no SLA, Queensland law), Privacy Policy last updated 2026-06-04]
+  highlights: 'Also the month of the "honest market read" (/market asOf 2026-06).'

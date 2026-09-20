@@ -1,0 +1,139 @@
+generated: '2026-09-19'
+method: probed
+source: >-
+  openapi/mercury-hq-com-x402-storefront-openapi.yml, https://network.mercury-hq.com/university/docs
+  (+ Accept: text/markdown twin), /developers, /university/developers, /terms (HTML and JSON),
+  /.well-known/x402, /.well-known/mercury-attestation, and live probes of /buy/fetch (402), /buy/signal
+  (200), /buy/matter (503), /nonexistent (404), /mcp, /a2a - all 2026-09-19.
+description: >-
+  How the MERCURY storefront behaves across calls. Every operation is an HTTP GET with query parameters
+  that performs a paid read of a third-party URL and returns one JSON record plus a signed receipt; there
+  is no resource the caller creates, updates or deletes, so the write-surface conventions (idempotency,
+  reversibility) reduce to one question - what happens to the money on a retry - and the provider answers
+  it in its terms: every attempt is charged and no payment is refundable.
+
+surfaces:
+- name: MERCURY x402 Storefront API
+  url: https://network.mercury-hq.com
+  style: REST/JSON, GET-only, query parameters; OpenAPI 3.1.0
+  gated: paid routes by HTTP 402 x402 challenge or Bearer mk_ key; discovery free
+- name: MERCURY MCP Server
+  url: https://network.mercury-hq.com/mcp
+  style: MCP 2025-06-18 streamable HTTP (JSON-RPC 2.0 over POST)
+  gated: tools/call by Bearer mk_ key; initialize and tools/list free
+- name: MERCURY Web Fetch A2A Agent
+  url: https://network.mercury-hq.com/a2a
+  style: A2A 0.3.0 JSON-RPC, message/send only
+  gated: free preview; paid result via the x402 route
+
+authentication:
+  style: payment-as-authorization (x402) with an optional prepaid API key
+  detail: >-
+    No securitySchemes in the spec. Unpaid -> 402 {x402Version 1, accepts[]}; replay with X-PAYMENT (x402
+    client) or send Authorization: Bearer mk_test_/mk_live_. See authentication/mercury-hq-com-authentication.yml.
+
+idempotency:
+  supported: false
+  coverage: none
+  mechanism: null
+  scope: []
+  detail: >-
+    No Idempotency-Key header, no client request id and no replay guarantee is documented anywhere. The
+    terms are explicit in the other direction: "you pay per ATTEMPT, like a search API" and payments are
+    "NON-REFUNDABLE once settled". On the x402 rail each settled X-PAYMENT is a distinct on-chain transfer,
+    so a retried request is a second purchase; on the key rail each call debits credits again. The
+    receipt nonce is server-generated per response and is a provenance field, not a dedup key. The
+    operations are reads (no server state is mutated), so the risk of a retry is money, not data.
+
+pagination:
+  style: none
+  detail: every route returns one record; /buy/batch takes up to 20 URLs in one call (urls param) and /buy/sitemap has a limit param (sample size), but there is no cursor, page or offset anywhere.
+
+field_expansion:
+  style: opt-in flags on /buy/fetch
+  detail: '?format=markdown (markdown instead of text), ?links=1 (adds an outbound-link graph), ?extract=1 (adds description + wordCount) or ?extract=<comma list of fields> (adds a structured record); each raises the x402 tier (fetch $0.003 / plus $0.006 / pro $0.012 per x-x402.accepts).'
+sparse_fields: none
+metadata: none (no free-form client metadata field)
+
+request_id:
+  request_header: none documented
+  response_header: fly-request-id (Fly.io edge header, observed on every response; not documented by the provider)
+  body_field: attestation.nonce (16 random bytes) and attestation.signedAt on paid results
+  detail: no X-Request-Id or traceparent is documented.
+
+versioning:
+  style: unversioned paths; info.version "1" / spec id mercury-storefront/1; live-generated OpenAPI
+  detail: lifecycle/mercury-hq-com-lifecycle.yml
+
+content_negotiation:
+  detail: >-
+    Human pages carry agent twins - GET /university/docs with Accept: text/markdown (or ?format=md)
+    returns text/markdown (observed 200, 11,193 bytes); GET /terms with Accept: application/json returns a
+    mercury-terms/1 JSON document. API responses are application/json only; /buy/table can return CSV
+    inside the JSON (format=csv|json|both).
+
+response_envelope:
+  shape: '{ok: boolean, url, status (upstream HTTP status), ...service fields (text | data | extract | changed ...), fetchedAt, contentType?, bytes?, truncated?, error? (only when ok false), attestation{keyId, alg, address, contentHash, nonce, signedAt, signature, verify{message, howTo}}}'
+  detail: >-
+    ok:false is a delivered (and charged) result. required in the spec: ok, url; additionalProperties
+    false on /buy/fetch. Not every operation's 200 schema lists attestation explicitly (buy_cited_markdown,
+    buy_cited_links, buy_cited_feed, buy_cited_redirect, buy_cited_sitemap, buy_cited_robots,
+    buy_cited_headers, buy_cited_notarize, buy_cited_batch, buy_cited_dns and buy_extract omit it) although
+    the docs say every paid result ships one - a spec gap, recorded in the overlay.
+
+error_envelope:
+  shape: proprietary JSON; 402 x402 v1 body; JSON-RPC errors on /a2a and /mcp
+  detail: errors/mercury-hq-com-problem-types.yml
+
+rate_limit_signaling:
+  headers: none
+  detail: per-minute limits per API-key tier on /pricing only; no headers, no documented 429 (rate-limits/mercury-hq-com-rate-limits.yml)
+
+payment_signaling:
+  challenge_status: 402
+  challenge_body: x402 v1 {x402Version, error, accepts[{scheme exact, network base, maxAmountRequired, resource, payTo, maxTimeoutSeconds 60, asset, outputSchema, extra}]}
+  request_header: X-PAYMENT (signed payment payload)
+  price_declaration: x-payment-info + x-x402 per operation in the OpenAPI; /catalog items[].price; /.well-known/x402 resources[].price/priceUsd; agent card securitySchemes.x402 and metadata.x402
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402 (server-side; "buyers never talk to the facilitator directly")
+  settlement_headers_observed: none on the unpaid path (a paid call was not made)
+  guarantees_stated: '"never authorizes more than the listed amount for one result"; "Failures 503 before charging - you are never billed for a stub"; "never a silent charge-then-500"'
+
+dry_run_mode:
+  supported: partial
+  detail: >-
+    No dry-run parameter, but three $0 rehearsals exist: (1) any paid route called without payment returns
+    the complete 402 terms and outputSchema without charging; (2) GET /buy/signal is a free SKU that runs
+    the full buy loop on labelled sample data; (3) /x402/attestation/sample + /x402/verify let an agent
+    exercise receipt verification before paying. The mk_test_ sandbox key (100 credits) runs the real
+    routes at no cost. See sandbox/mercury-hq-com-sandbox.yml.
+
+reversibility:
+  grade: na
+  write_surface: none
+  detail: >-
+    The API has no write surface - every operation is a GET that reads a third-party URL and mutates no
+    resource on MERCURY - so there is nothing to cancel, void, restore or roll back, and reversibility,
+    like idempotency's data half, does not apply. The only irreversible effect is the charge, and the
+    provider states its policy verbatim rather than leaving it open: payments are "NON-REFUNDABLE once
+    settled" (terms, effective 2026-06-04; GET /terms as JSON returns refundable:false). No window applies
+    because no reversal exists. Not graded documented/verified: a refund policy that says "never" is not a
+    reversal path.
+  charges:
+    refundable: false
+    source: https://network.mercury-hq.com/terms
+    exception_stated: 'gated SKUs refuse payment with 503 before charging, and "A fetch that returns an honest failure ... is still a delivered attempt" (charged)'
+  surfaces: []
+
+sandbox:
+  published: true
+  detail: sandbox/mercury-hq-com-sandbox.yml (free mk_test_ key with 100 credits; $0 SKUs; unpaid 402 dry-run)
+
+cross_links:
+  authentication: authentication/mercury-hq-com-authentication.yml
+  errors: errors/mercury-hq-com-problem-types.yml
+  lifecycle: lifecycle/mercury-hq-com-lifecycle.yml
+  rate_limits: rate-limits/mercury-hq-com-rate-limits.yml
+  plans: plans/mercury-hq-com-plans-pricing.yml
+  sandbox: sandbox/mercury-hq-com-sandbox.yml
+  mcp: mcp/mercury-hq-com-mcp.yml
+  agent_card: a2a/mercury-hq-com-a2a.yml

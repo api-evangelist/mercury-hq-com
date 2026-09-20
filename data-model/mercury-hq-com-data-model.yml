@@ -1,0 +1,126 @@
+generated: '2026-09-19'
+method: derived
+source:
+- openapi/mercury-hq-com-x402-storefront-openapi.yml (inline 200 response schemas; x-payment-info / x-x402 extensions; no components)
+- plans/mercury-hq-com-catalog.json and well-known/mercury-hq-com-x402.json (SKU / resource entities)
+- well-known/mercury-hq-com-mercury-attestation.json (receipt message template)
+- well-known/mercury-hq-com-erc8004.json and a2a/mercury-hq-com-agent-card.json (agent identity)
+- https://network.mercury-hq.com/university/developers (API key entity; not in the OpenAPI)
+description: >-
+  Entity graph for the MERCURY storefront. The OpenAPI declares no components and no $ref links - every
+  operation carries an inline response object - so the graph is derived from the recurring inline shapes
+  and from the discovery documents. The centre is the SKU (a catalog item = one route = one price), which
+  every other entity hangs off: a PaymentChallenge advertises it, a PaidResult delivers it, and an
+  Attestation binds the result's bytes to the URL and time. No subway/ render exists.
+entities:
+- name: SKU
+  aka: catalog item / x402 resource / OpenAPI operation / MCP tool
+  source: /catalog items{}, /.well-known/x402 resources[], one GET operation per SKU, one MCP tool per paid SKU
+  id_field: 'id / catalog key (web-fetch, cited-markdown, ...); operationId (buy_web_fetch, buy_cited_markdown, ...); MCP tool name (fetch, markdown, ...)'
+  fields: 'route (GET /buy/<sku>), price ($ string), priceUsd, currency USDC, network base, networkCaip2, kind (api|data), metered, description, category, tags[], priceTiers[]'
+  count: 18 paid + 1 free (signal); 9 more listed in llms.txt as gated
+- name: PaymentTerms
+  source: x-payment-info / x-x402 on each operation; document-level x-payment-info
+  fields: 'protocols [x402], scheme exact, price, currency, network, networkCaip2, testnet, asset (ERC-20 address), payTo, facilitator, x402Version, maxTimeoutSeconds, accepts[{amount (base units), price, extra{tier, includes}}]'
+- name: PaymentChallenge
+  source: live 402 body (x402 v1)
+  fields: 'x402Version 1, error, accepts[{scheme, network, maxAmountRequired, resource, description, mimeType, payTo, maxTimeoutSeconds, asset, outputSchema{input, output}, extra{name, version}}]'
+- name: PaidResult
+  source: inline 200 schemas (18 operations)
+  fields: 'ok, url (final), status (upstream), fetchedAt, then per SKU: text | data | extract | title | links[] | changed/fromHash/toHash/diff | contentType | bytes | truncated | error, attestation'
+  required: [ok, url]
+- name: FetchResult
+  source: 200 schema of buy_web_fetch
+  fields: 'ok, url, status, title, text, format, description, wordCount, extract{}, links[{url, text}], contentType, bytes, truncated, error, attestation'
+- name: ExtractResult
+  source: 200 schema of buy_extract
+  fields: 'ok, url, status, extract{}, schema, coerced, title, text, bytes, contentType, truncated, redirects, fetchedAt, metered'
+- name: DiffResult
+  source: 200 schema of buy_cited_diff
+  fields: 'ok, url, status, changed, fromHash, toHash, comparedBy, diff, text, bytes, contentType, fetchedAt, error, attestation'
+- name: Attestation
+  aka: provenance receipt
+  source: attestation object in the 200 schemas; /.well-known/mercury-attestation message template; /x402/attestation/sample
+  id_field: nonce (16 random bytes) + signature
+  fields: 'keyId (mercury-x402-attestation-v1:<address>), alg EIP-191-personal_sign, address, contentHash (sha256 of text), nonce, signedAt, signature (65-byte), verify{message, howTo}'
+- name: AttestationKey
+  source: /.well-known/mercury-attestation
+  id_field: keyId
+  fields: 'name, keyId, address 0xACB40253BD71Bb9a5d491b2c6EFF755F2A33Fc75, alg, domain mercury-x402, ephemeral false, messageTemplate, howToVerify'
+- name: Seller
+  source: /catalog, /.well-known/x402, /health
+  fields: 'seller MERCURY, network base, payTo 0xe10B9d44e72A29B9c19da02981FFCd875308e3C1, facilitator, facilitatorMode cdp, bazaarIndexable'
+- name: AgentRegistration
+  source: /.well-known/erc8004.json; agent card registrations[]
+  id_field: agentId 54791 on eip155:8453
+  fields: 'type, name, description, url, image, endpoints[{name, protocol (a2a|x402), endpoint}], trustModels[], registrations[{agentId, agentRegistry}]'
+- name: ApiKey
+  source: /developers, /university/developers (outside the OpenAPI)
+  id_field: keyId (raw key shown once; sha256 + 4-char tail stored)
+  fields: 'key (mk_test_|mk_live_ prefix), keyId, env, tail, usage, credits balance, tier'
+- name: Tier
+  source: /pricing
+  id_field: name (Sandbox, Pro, Business, Enterprise)
+  fields: 'price per month, included credits, rate limit per minute, proxy take %'
+relationships:
+- from: "Seller"
+  to: "SKU"
+  type: "has_many"
+  via: "/catalog items{} and /.well-known/x402 resources[]"
+- from: "SKU"
+  to: "PaymentTerms"
+  type: "has_one"
+  via: "x-payment-info / x-x402 on the operation"
+- from: "SKU"
+  to: "PaymentChallenge"
+  type: "has_one"
+  via: "accepts[].resource == the SKU route URL"
+- from: "PaymentChallenge"
+  to: "PaymentTerms"
+  type: "belongs_to"
+  via: "maxAmountRequired == accepts[].amount; payTo, asset, network copied"
+- from: "SKU"
+  to: "PaidResult"
+  type: "has_many"
+  via: "one result per settled call"
+- from: "PaidResult"
+  to: "Attestation"
+  type: "has_one"
+  via: "attestation"
+- from: "Attestation"
+  to: "AttestationKey"
+  type: "belongs_to"
+  via: "keyId / address"
+- from: "Attestation"
+  to: "PaidResult"
+  type: "belongs_to"
+  via: "contentHash == sha256(text); verify.message embeds url, status, fetchedAt, nonce"
+- from: "DiffResult"
+  to: "Attestation"
+  type: "has_many"
+  via: "fromHash (a prior receipt's contentHash) -> toHash (this receipt); receipts chain"
+- from: "AgentRegistration"
+  to: "SKU"
+  type: "has_one"
+  via: "endpoints[protocol x402].endpoint == /buy/fetch (web-fetch)"
+- from: "AgentRegistration"
+  to: "Seller"
+  type: "belongs_to"
+  via: "url / owner wallet"
+- from: "ApiKey"
+  to: "Tier"
+  type: "belongs_to"
+  via: "subscription (Stripe)"
+- from: "ApiKey"
+  to: "PaidResult"
+  type: "has_many"
+  via: "credits debited per call (1 credit = $0.001)"
+- from: "SKU"
+  to: "MCP tool"
+  type: "has_one"
+  via: "mcp/mercury-hq-com-tool-crosswalk.yml (18 of 19)"
+id_conventions:
+  prices: '"$0.003" strings in catalog/OpenAPI; integer USDC base units (6 decimals) in accepts[].amount / maxAmountRequired ("3000")'
+  hashes: 0x-prefixed sha256 hex (contentHash, prevHash, fromHash, toHash)
+  chain_ids: CAIP-2 (eip155:8453)
+  addresses: EIP-55 checksummed 0x addresses for payTo, asset, signer, registries

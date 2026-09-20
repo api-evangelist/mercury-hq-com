@@ -1,0 +1,58 @@
+# MERCURY x402
+
+> The agent-payable web-data network. 27 signed-provenance services an autonomous
+> agent discovers, pays for with its own wallet (Base mainnet (eip155:8453) · real USDC · no token), and gets back the
+> result PLUS a cryptographic receipt it can verify offline, forever — in ~5 lines of code.
+
+## The wedge — why an agent picks MERCURY
+
+> Firecrawl, Jina, and Tavily all gate behind a human-created API key + a credit-card plan,
+> so an agent CANNOT onboard itself. MERCURY is KEYLESS: no API key, no signup, no account —
+> an agent finds a SKU in the x402 Bazaar and pays with zero human in the loop. And every
+> result ships an EIP-191 SIGNED provenance receipt (proof the bytes are genuine + untampered)
+> that RAG, trading, and agent-to-agent commerce need and no plain scraper provides.
+
+How to buy (x402 v2): GET https://network.mercury-hq.com/buy/<sku>?url=<target> with no payment returns HTTP 402 +
+a payment-required JSON (price, payTo, network eip155:8453, facilitator). Pay with any x402
+client (x402-fetch / x402-axios) and replay — you get the JSON result plus the signed
+provenance attestation you can verify offline.
+
+## Products (27 live · all keyless · all signed)
+
+- [matter](https://network.mercury-hq.com/buy/matter): One unit of MERCURY Matter — the base resource (ERC-1155 id 1). — $0.01 USDC/call.
+- [antimatter](https://network.mercury-hq.com/buy/antimatter): One unit of Antimatter — a rarer resource (ERC-1155 id 2). — $0.05 USDC/call.
+- [dark-matter](https://network.mercury-hq.com/buy/dark-matter): One unit of Dark Matter — the rarest resource (ERC-1155 id 3). — $0.25 USDC/call.
+- [brick](https://network.mercury-hq.com/buy/brick): One fungible MERCURY $-brick (ERC-1155 id 4). — $0.01 USDC/call.
+- [agent](https://network.mercury-hq.com/buy/agent): A 1-of-1 MERCURY agent identity NFT (tier T1) with its own ERC-6551 wallet. — $1.00 USDC/call.
+- [shelf](https://network.mercury-hq.com/buy/shelf): A unique placeable MERCURY wall shelf (1-of-1, cloned from template id 100). — $0.10 USDC/call.
+- [wand](https://network.mercury-hq.com/buy/wand): A unique placeable MERCURY magic wand (1-of-1, cloned from template id 101). — $0.50 USDC/call.
+- [api-render](https://network.mercury-hq.com/buy/api/render): Metered MERCURY render API — one world/room render job, priced per call. — $0.02 USDC/call.
+- [api-oracle](https://network.mercury-hq.com/buy/api/oracle): Metered MERCURY Oracle API — one Oracle task/answer, priced per call. — $0.10 USDC/call.
+- [Verifiable Web Fetch](https://network.mercury-hq.com/buy/fetch): VERIFIABLE keyless web-read for autonomous agents. — $0.003 USDC/call.
+- [Structured Data Extraction API — URL to typed JSON (schema extract, keyless x402)](https://network.mercury-hq.com/buy/extract): TYPED structured extract for autonomous agents — URL + schema → a clean, type-safe JSON record. — $0.004 USDC/call.
+- [Cited Markdown](https://network.mercury-hq.com/buy/markdown): URL → clean, LLM-ready markdown (boilerplate/nav/ads stripped, headings + lists + links preserved) with a signed provenance rec… — $0.005 USDC/call.
+- [Cited Metadata](https://network.mercury-hq.com/buy/metadata): URL → one typed, SIGNED metadata record (JSON-LD + OpenGraph + Twitter-card + standard <meta> + canonical + title), by source. — $0.006 USDC/call.
+- [Cited Links](https://network.mercury-hq.com/buy/links): URL → a SIGNED outbound/internal link graph: every <a href> as an absolute URL + anchor text, classified internal vs external a… — $0.005 USDC/call.
+- [AI Crawler Permission Audit — signed robots.txt / llms.txt / ai.txt verdict (keyless x402)](https://network.mercury-hq.com/buy/robots): Domain → signed, timestamped per-AI-crawler allow/block audit from robots.txt + llms.txt + ai.txt (GPTBot, ClaudeBot, Perplexit… — $0.005 USDC/call.
+- [Cited Diff — signed web-change proof (refetch + verifiable fromHash->toHash receipt)](https://network.mercury-hq.com/buy/diff): URL + prior content-hash (or prior text) -> refetch, deterministic change-proof: changed? + a NEW signed receipt binding fromHa… — $0.006 USDC/call.
+- [Cited Notarize](https://network.mercury-hq.com/buy/notarize): Notarize any content (inline ?content= or a fetched ?url=) into a signed, offline-verifiable provenance receipt — sha256 conten… — $0.008 USDC/call.
+- [Cited Security-Headers Audit](https://network.mercury-hq.com/buy/headers): URL → a deterministic HTTP security-headers audit (HSTS, CSP, X-Frame, X-Content-Type, Referrer-Policy, Permissions-Policy + mo… — $0.005 USDC/call.
+- [Cited Table — HTML table → typed JSON rows + CSV, with signed provenance (keyless x402)](https://network.mercury-hq.com/buy/table): URL in → the page's main HTML <table>(s) parsed into typed, header-keyed rows (JSON) + clean RFC-4180 CSV, with a signed proven… — $0.006 USDC/call.
+- [Cited Feed](https://network.mercury-hq.com/buy/feed): RSS/Atom feed URL → a SIGNED, normalized item list [{title,link,published,summary}] unified across RSS 2.0/RDF + Atom 1.0: CDAT… — $0.005 USDC/call.
+- [Cited Availability Probe](https://network.mercury-hq.com/buy/availability): URL → a signed uptime/status probe: up/down, HTTP status + class, reachability reason, final URL after redirects, and a measure… — $0.005 USDC/call.
+- [Cited Validate — JSON API response vs JSON Schema, signed pass/fail + per-field errors (keyless x402)](https://network.mercury-hq.com/buy/validate): URL (a JSON/API endpoint) + a JSON Schema in → a deterministic pass/fail with per-field errors (missing/wrong-type/enum/range/p… — $0.005 USDC/call.
+- [Cited Batch — signed multi-page snapshot (Merkle root over every page's contentHash + per-page proofs)](https://network.mercury-hq.com/buy/batch): List of URLs (≤20) → clean content for each + ONE signed receipt committing to a MERKLE ROOT over every page's contentHash. — $0.02 USDC/call.
+- [Cited Sitemap](https://network.mercury-hq.com/buy/sitemap): Domain/URL → a SIGNED snapshot of the site's PUBLISHED sitemap: discovers the sitemap via robots.txt Sitemap: lines then /sitem… — $0.01 USDC/call.
+- [Cited DNS Snapshot](https://network.mercury-hq.com/buy/dns): Domain → a SIGNED, timestamped DNS snapshot (A, AAAA, MX, NS, TXT, CNAME, SOA), normalised + sorted into a byte-stable record s… — $0.006 USDC/call.
+- [Cited Readability](https://network.mercury-hq.com/buy/readability): URL → a clean ARTICLE record { title, byline, publishedAt, article text } with boilerplate (nav/header/footer/sidebar/ads/share… — $0.005 USDC/call.
+- [Cited Redirect](https://network.mercury-hq.com/buy/redirect): URL → a SIGNED redirect/canonical resolution: the full hop chain [{url,status}] from the link you have to where it ACTUALLY lan… — $0.005 USDC/call.
+
+## Machine-readable discovery (free, no payment, no key, no account)
+
+- [Free catalog](https://network.mercury-hq.com/catalog): every SKU, price, network, and the exact 402 flow as JSON.
+- [OpenAPI 3.1](https://network.mercury-hq.com/openapi.json): full machine-readable API description.
+- [x402 service doc](https://network.mercury-hq.com/.well-known/x402): the x402 discovery record (CAIP-2 eip155:8453).
+- [Competitor teardown](https://network.mercury-hq.com/vs): keyless + signed vs Firecrawl / Jina / Tavily, machine-readable.
+- [Attestation verifier](https://network.mercury-hq.com/x402/verify): independently verify the signed receipt on any paid result.
+- [Honest market read](https://network.mercury-hq.com/market): the real paying sub-segment (provenance-bound web reads) + when a free reader is fine.
+- [Health](https://network.mercury-hq.com/health): liveness + live config.

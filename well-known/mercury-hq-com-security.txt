@@ -1,0 +1,4 @@
+# MERCURY x402 storefront — Base mainnet, real USDC, no token.
+Contact: mailto:mercuryuser@proton.me
+Canonical: https://network.mercury-hq.com/.well-known/security.txt
+Preferred-Languages: en

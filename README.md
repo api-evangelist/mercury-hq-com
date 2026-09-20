@@ -64,5 +64,7 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-MERCURY is a company surfaced via the API Evangelist harvest backlog (source: a2a-registry) and added to the network as a stub for full-pipeline profiling.
+MERCURY (Mercury Holdings Pty Ltd) runs an agent-payable web-data network at network.mercury-hq.com: 19 live "Cited" services (verifiable web fetch, markdown, structured extract, metadata, links, robots audit, diff, notarize, headers, table, feed, availability, validate, batch, sitemap, DNS, readability, redirect) sold per call over HTTP 402 (x402, USDC on Base mainnet) with an EIP-191 signed provenance receipt on every result, reachable keylessly, with a Mercury API key, or through a hosted MCP server. Published: OpenAPI 3.1, llms.txt, /catalog, /.well-known/x402, a conformant A2A 0.3.0 agent card, an ERC-8004 registration and security.txt.
 - https://mercury-hq.com/
+- https://network.mercury-hq.com/university/docs
+- https://network.mercury-hq.com/openapi.json

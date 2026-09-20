@@ -1,0 +1,82 @@
+generated: '2026-09-19'
+method: probed
+status: published
+source: https://network.mercury-hq.com/mcp
+sources:
+- GET https://network.mercury-hq.com/mcp (server descriptor JSON)
+- POST https://network.mercury-hq.com/mcp initialize (protocolVersion 2025-06-18, serverInfo mercury-x402 1.0.0)
+- POST https://network.mercury-hq.com/mcp tools/list (18 tools with inputSchema; saved verbatim as mercury-hq-com-mcp-tools-list.json)
+- https://registry.npmjs.org/mercury-x402-mcp (stdio package 1.0.1, published 2026-06-07)
+- https://network.mercury-hq.com/university/developers ("MCP endpoint" section) and /developers
+description: >-
+  MERCURY ships a real, hosted Model Context Protocol server AND a first-party stdio package. The hosted
+  server at https://network.mercury-hq.com/mcp answers GET with a descriptor ({name: mercury-x402,
+  transport: streamable-http, endpoint: "POST /mcp (JSON-RPC 2.0)", tools: 18}), completes initialize
+  (protocolVersion 2025-06-18, capabilities {tools: {}}, instructions "tools/list is free; tools/call needs a
+  Mercury API key (Authorization: Bearer mk_...)") and returns 18 tools from tools/list without
+  credentials, each with a JSON Schema inputSchema that matches the query parameters of the backing
+  /buy/* operation in the OpenAPI. tools/call is gated by a Mercury API key; a free mk_test_ key is issued
+  at /developers (POST /api/dev/keys?live=false). The npm package mercury-x402-mcp (bin mercury-x402-mcp,
+  deps @modelcontextprotocol/sdk, viem, x402-fetch) runs the same catalog locally over stdio and pays per
+  call from the operator's own Base wallet (env MERCURY_PRIVATE_KEY) instead of an API key; its README says
+  the tool list is "built live from Mercury's catalog" and adds free mercury_catalog and mercury_verify tools.
+deployment:
+  mode: both
+  endpoint: https://network.mercury-hq.com/mcp
+  install: npx -y mercury-x402-mcp
+  package: https://www.npmjs.com/package/mercury-x402-mcp
+  auth: api-key
+  auth_detail: >-
+    Remote endpoint - tools/list and initialize anonymous; tools/call requires Authorization: Bearer
+    mk_test_... or mk_live_... (free sandbox key, 100 credits, from /developers). Stdio package - no API
+    key; a funded Base-mainnet wallet private key in MERCURY_PRIVATE_KEY pays each call over x402.
+  verified: probed
+  checked: '2026-09-19'
+  probes:
+  - {url: 'https://network.mercury-hq.com/mcp', method: GET, status: 200, body: '{"name":"mercury-x402","transport":"streamable-http","endpoint":"POST /mcp (JSON-RPC 2.0)","tools":18,"note":"tools/list is free; tools/call needs a Mercury API key (Authorization: Bearer mk_…). Free key: /developers"}'}
+  - {url: 'https://network.mercury-hq.com/mcp', method: 'POST initialize', status: 200, result: 'protocolVersion 2025-06-18, serverInfo {name: mercury-x402, version: 1.0.0}, capabilities {tools: {}}'}
+  - {url: 'https://network.mercury-hq.com/mcp', method: 'POST tools/list', status: 200, result: '18 tools, content-length 17773, application/json (no SSE framing)'}
+  - {url: 'https://network.mercury-hq.com/mcp', method: 'POST tools/call web_fetch (no key)', status: 200, result: 'isError true: Unknown tool "web_fetch". Call tools/list for the catalog. (tool names are bare: fetch, extract, ...)'}
+  - {url: 'https://network.mercury-hq.com/.well-known/mcp.json', method: GET, status: 404}
+  - {url: 'https://network.mercury-hq.com/.well-known/oauth-protected-resource', method: GET, status: 404, note: 'no RFC 9728 metadata on the MCP host; auth is a static API key, not OAuth'}
+  - {url: 'https://network.mercury-hq.com/.well-known/oauth-authorization-server', method: GET, status: 404}
+  - {url: 'https://mcp.mercury-hq.com/', method: GET, status: 'unresolvable (no DNS)'}
+server:
+  name: mercury-x402
+  version: 1.0.0
+  transport: http
+  url: https://network.mercury-hq.com/mcp
+  protocol_version: '2025-06-18'
+  capabilities: {tools: {}}
+  instructions: 'Mercury - agent-payable web data. tools/list is free; tools/call needs a Mercury API key (Authorization: Bearer mk_…, free at https://mercury-x402-jed.fly.dev/developers). Every result carries a signed EIP-191 provenance receipt.'
+  origin_alias: https://mercury-x402-jed.fly.dev (the Fly.io app behind network.mercury-hq.com; the initialize instructions and the npm README point at it)
+tools_list_file: mercury-hq-com-mcp-tools-list.json
+tools:
+- {name: fetch, description: 'Verifiable keyless web-read - clean page text + title + status + signed provenance receipt; ?format=markdown, ?links=1, ?extract=<fields>', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_web_fetch', price: '$0.003', input: [url (required), format, links, extract]}
+- {name: extract, description: 'URL + schema -> typed, schema-conformant JSON record', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_extract', price: '$0.004', input: [url (required), schema (required), format]}
+- {name: markdown, description: 'URL -> clean LLM-ready markdown with signed receipt', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_markdown', price: '$0.005', input: [url (required)]}
+- {name: metadata, description: 'URL -> signed metadata record (JSON-LD, OpenGraph, Twitter card, meta, canonical, title)', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_metadata', price: '$0.006', input: [url (required)]}
+- {name: links, description: 'URL -> signed outbound/internal link graph', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_links', price: '$0.005', input: [url (required)]}
+- {name: robots, description: 'Domain -> signed per-AI-crawler allow/block audit from robots.txt, llms.txt, ai.txt', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_robots', price: '$0.005', input: [domain (required), path]}
+- {name: diff, description: 'URL + prior hash/text -> signed change-proof fromHash->toHash', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_diff', price: '$0.006', input: [url (required), prevHash, prevText, format]}
+- {name: notarize, description: 'Notarize inline content or a fetched URL into a signed receipt', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_notarize', price: '$0.008', input: [url, content (one of the two)]}
+- {name: headers, description: 'URL -> deterministic HTTP security-headers audit with letter grade', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_headers', price: '$0.005', input: [url (required)]}
+- {name: table, description: 'URL -> HTML tables as typed JSON rows + RFC 4180 CSV', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_table', price: '$0.006', input: [url (required), table, format]}
+- {name: feed, description: 'RSS/Atom URL -> signed normalized item list', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_feed', price: '$0.005', input: [url (required)]}
+- {name: availability, description: 'URL -> signed up/down probe with status, final URL, responseMs', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_availability', price: '$0.005', input: [url (required)]}
+- {name: validate, description: 'JSON endpoint + JSON Schema -> signed pass/fail with per-field errors', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_validate', price: '$0.005', input: [url (required), schema (required), pointer]}
+- {name: batch, description: '<=20 URLs -> clean content each + one receipt over a Merkle root', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_batch', price: '$0.02', input: [urls (required), format]}
+- {name: sitemap, description: 'Domain/URL -> signed snapshot of the published sitemap', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_sitemap', price: '$0.01', input: [url (required), fetch, limit]}
+- {name: dns, description: 'Domain -> signed DNS snapshot (A, AAAA, MX, NS, TXT, CNAME, SOA)', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_dns', price: '$0.006', input: [domain, url (one of the two)]}
+- {name: readability, description: 'URL -> clean article record {title, byline, publishedAt, text}', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_readability', price: '$0.005', input: [url (required)]}
+- {name: redirect, description: 'URL -> signed redirect/canonical hop chain', source_operation: 'openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_cited_redirect', price: '$0.005', input: [url (required)]}
+stdio_package_extras:
+  note: per the npm README (not observed live - the stdio server was not run); the README says the paid tools are built live from /catalog
+  tools: [mercury_catalog (free, lists the catalog), mercury_verify (free, verifies a receipt)]
+not_exposed_as_tools:
+- operation: buy_signal
+  reason: the free $0 demo read (GET /buy/signal) has no MCP tool on the hosted server
+registries_searched:
+- {registry: npm, query: mercury-x402, hit: mercury-x402-mcp 1.0.1 (publisher mercurynetwork)}
+- {registry: 'GitHub orgs mercury-hq, mercuryhq, mercury-x402', status: 404}
+- {registry: PyPI mercury-x402 / mercury-hq, status: 404}

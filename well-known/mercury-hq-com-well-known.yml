@@ -1,0 +1,126 @@
+generated: '2026-09-19'
+method: probed
+source: live GET of the named /.well-known/ path list on every host this record knows (2026-09-19)
+hit_count: 1
+path_echo_control: passed
+note: >-
+  One named document is served: RFC 9116 security.txt on network.mercury-hq.com (Contact
+  mailto:mercuryuser@proton.me, Canonical, Preferred-Languages en; it carries NO Expires field, which RFC
+  9116 requires, and no Policy line). Every other named path is absent on all three hosts. The registrable
+  domain mercury-hq.com and www.mercury-hq.com are a static landing page that answers a real 404
+  (text/html, 153 bytes) for every /.well-known/* path, and network.mercury-hq.com answers a JSON 404
+  ({ok:false, error:"No x402 resource at GET ...", status:404, discovery:{...}}) for unknown routes; a
+  negative control at /.well-known/mercury-hq-com-negative-control-7778ca32.json returned 404 on all three
+  hosts, so no host is a path-echoing catch-all. The MCP server host IS network.mercury-hq.com (the
+  endpoint is /mcp on the API host; mcp.mercury-hq.com does not resolve), so the RFC 9728
+  oauth-protected-resource probe on it is the row below - 404, consistent with the server using a static
+  API key rather than OAuth. Beyond the named list the API host serves three provider-specific discovery
+  documents that ARE the machine-readable index of this storefront and are saved verbatim below: the x402
+  service document, the ERC-8004 agent registration file and the attestation key pin. The A2A agent card
+  (canonical and legacy paths, both 200) is graded in a2a/mercury-hq-com-a2a.yml. The hosts
+  world.mercury-hq.com, apps.mercury-hq.com, api.mercury-hq.com and docs.mercury-hq.com answered HTTP 530
+  (Cloudflare origin unreachable) at the root and were not swept.
+hosts:
+- host: https://network.mercury-hq.com
+  documents:
+  - path: /.well-known/security.txt
+    status: 200
+    file: mercury-hq-com-security.txt
+    content_type: text/plain; charset=utf-8
+    note: Contact, Canonical, Preferred-Languages present; Expires and Policy absent
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+  - path: /.well-known/oauth-protected-resource
+    status: 404
+    note: this host is also the MCP server host (POST /mcp)
+  - path: /.well-known/api-catalog
+    status: 404
+  - path: /.well-known/api-catalog.json
+    status: 404
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/ucp.json
+    status: 404
+  - path: /.well-known/acp.json
+    status: 404
+  - path: /.well-known/aauth-resource.json
+    status: 404
+  - path: /.well-known/apis.json
+    status: 404
+  - path: /apis.json
+    status: 404
+  - path: /apis.yml
+    status: 404
+  - path: /.well-known/mercury-hq-com-negative-control-7778ca32.json
+    status: 404
+    note: negative control
+- host: https://mercury-hq.com
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/oauth-protected-resource, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/api-catalog.json, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+  - {path: /.well-known/ucp.json, status: 404}
+  - {path: /.well-known/acp.json, status: 404}
+  - {path: /.well-known/aauth-resource.json, status: 404}
+  - {path: /.well-known/apis.json, status: 404}
+  - {path: /apis.json, status: 404}
+  - {path: /apis.yml, status: 404}
+  - {path: /.well-known/mercury-hq-com-negative-control-7778ca32.json, status: 404, note: negative control}
+- host: https://www.mercury-hq.com
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/oauth-protected-resource, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/api-catalog.json, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+  - {path: /.well-known/ucp.json, status: 404}
+  - {path: /.well-known/acp.json, status: 404}
+  - {path: /.well-known/aauth-resource.json, status: 404}
+  - {path: /.well-known/apis.json, status: 404}
+  - {path: /apis.json, status: 404}
+  - {path: /apis.yml, status: 404}
+  - {path: /.well-known/mercury-hq-com-negative-control-7778ca32.json, status: 404, note: negative control}
+extra_documents_served:
+- host: https://network.mercury-hq.com
+  path: /.well-known/x402
+  status: 200
+  content_type: application/json; charset=utf-8
+  file: mercury-hq-com-x402.json
+  note: x402 v2 service/discovery document (spec mercury-storefront/1, x402Version 2, seller MERCURY, networkCaip2 eip155:8453, payTo, facilitator, 18 resources with method/path/price/priceUsd, generatedAt on every request); byte-identical at /x402/discovery
+- host: https://network.mercury-hq.com
+  path: /.well-known/erc8004.json
+  status: 200
+  content_type: application/json; charset=utf-8
+  file: mercury-hq-com-erc8004.json
+  note: ERC-8004 AgentRegistration (agentId 54791 on eip155:8453 identity registry 0x8004A169...a432) naming the A2A card and the x402 /buy/fetch endpoint
+- host: https://network.mercury-hq.com
+  path: /.well-known/mercury-attestation
+  status: 200
+  content_type: application/json; charset=utf-8
+  file: mercury-hq-com-mercury-attestation.json
+  note: pinned EIP-191 attestation signer (0xACB40253BD71Bb9a5d491b2c6EFF755F2A33Fc75), message template and offline verification recipe for the provenance receipts
+- host: https://network.mercury-hq.com
+  path: /.well-known/agent-card.json
+  status: 200
+  content_type: application/json; charset=utf-8
+  file: ../a2a/mercury-hq-com-agent-card.json
+  note: also byte-identical at the legacy /.well-known/agent.json
+- host: https://network.mercury-hq.com
+  path: /llms.txt
+  status: 200
+  content_type: text/plain; charset=utf-8
+  file: ../llms/mercury-hq-com-llms.txt
+unreachable_hosts:
+- {host: 'https://world.mercury-hq.com', status: 530, note: 'Cloudflare origin unreachable at / and /legal/terms, /legal/privacy, /account'}
+- {host: 'https://apps.mercury-hq.com', status: 530}
+- {host: 'https://api.mercury-hq.com', status: 530}
+- {host: 'https://docs.mercury-hq.com', status: 530}
+- {host: 'https://mcp.mercury-hq.com', status: 'no DNS'}

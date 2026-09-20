@@ -1,0 +1,66 @@
+generated: '2026-09-19'
+method: searched
+source: https://network.mercury-hq.com/developers
+sources:
+- https://network.mercury-hq.com/developers ("1 · Get a free test key ... A capped free quota (100 credits)")
+- https://network.mercury-hq.com/university/developers (POST /api/dev/keys?live=false; key shape; 20 keys per IP per hour)
+- https://network.mercury-hq.com/pricing (Sandbox tier row)
+- https://network.mercury-hq.com/llms.txt and /catalog (free $0 /buy/signal demo)
+- https://network.mercury-hq.com/x402/attestation/sample and /x402/verify (free receipt sample + verifier; both fetched 200)
+- live unpaid GET /buy/fetch (402 dry-run) and POST /a2a message/send (free preview) - 2026-09-19
+description: >-
+  MERCURY has no separate sandbox host or test network for the API itself (the paid routes are live on
+  Base mainnet with real USDC); what it publishes instead is a free rail and a set of $0 rehearsal
+  surfaces. The API-key rail issues a free mk_test_ key with 100 credits that runs the SAME /buy/* routes
+  with the same signed receipts; the x402 rail can be rehearsed unpaid because every paid route returns
+  its full 402 terms without charging; /buy/signal is a $0 SKU that exercises the whole buy loop on
+  labelled sample data; and the provenance receipt can be studied on a free real sample and checked with a
+  free verifier. Values below are copied from the docs; nothing is invented. The in-game mint SKUs "stay
+  on testnet on purpose" and answer 503 before any charge.
+test_vs_live:
+  api_key_rail:
+    test_prefix: mk_test_
+    live_prefix: mk_live_
+    issue_test_key: 'POST https://network.mercury-hq.com/api/dev/keys?live=false&label=<optional> -> 201 {ok, key, keyId, env, tail, usage, save_it}'
+    test_quota: 100 credits (1 credit = $0.001; a $0.005 SKU costs 5 credits)
+    test_rate_limit: 5 requests per minute
+    issuance_cap: 20 keys per IP per hour
+    key_storage: raw key shown once; only sha256 + a 4-char tail stored
+    usage: 'curl -H "Authorization: Bearer mk_test_YOUR_KEY" "https://network.mercury-hq.com/buy/fetch?url=https://example.com"'
+    balance: GET /api/dev/balance (Bearer key)
+    go_live: subscribe a tier at /pricing (Stripe Checkout) or POST /api/dev/topup?key=mk_live_...&usd=10
+  x402_rail:
+    network: Base mainnet (eip155:8453) only; testnet false in every discovery document
+    dry_run: 'any paid route called without X-PAYMENT returns 402 with the exact price, payTo, asset and outputSchema and charges nothing (observed on /buy/fetch)'
+    note: 'the landing page''s 5-line example comments "throwaway Base-Sepolia key w/ USDC" but the storefront settles on mainnet; there is no published Sepolia endpoint'
+free_fixtures:
+- name: signal
+  route: GET https://network.mercury-hq.com/buy/signal
+  price: $0
+  returns: '{ok:true, delivered:"signal", kind:"data", topic:"signals", sample:true, disclaimer:"DEMO/SAMPLE DATA - not a live market read...", example:{pool:"MERC/USDC", bid:"BUY", price:"0.0142"}, ts}'
+  observed: {status: 200, fetched: '2026-09-19'}
+- name: attestation sample
+  route: GET https://network.mercury-hq.com/x402/attestation/sample
+  price: $0
+  returns: a real freshly-signed receipt over the example.com sample text (keyId, alg, address, contentHash, nonce, signedAt, signature, verify.message) to ecrecover yourself
+  observed: {status: 200, fetched: '2026-09-19'}
+- name: verifier
+  route: GET https://network.mercury-hq.com/x402/verify (self-demo) and POST https://network.mercury-hq.com/verify {text, attestation}
+  price: $0
+  returns: valid/invalid verdict; the GET demo shows a genuine receipt passing and a tampered copy failing
+  observed: {status: 200, fetched: '2026-09-19'}
+- name: A2A free preview
+  route: POST https://network.mercury-hq.com/a2a message/send
+  price: $0
+  returns: page title + HTTP status for the requested URL and a pointer to the paid /buy/fetch route
+  observed: {status: 200, fetched: '2026-09-19'}
+- name: MCP tools/list
+  route: POST https://network.mercury-hq.com/mcp
+  price: $0
+  returns: 18 tools with inputSchema (no key)
+  observed: {status: 200, fetched: '2026-09-19'}
+gated_stubs:
+  note: 'matter, antimatter, dark-matter, brick, agent, shelf, wand, api-render, api-oracle answer 503 {reason: mint-disabled, deliverable: false}, Retry-After 3600, before any charge'
+  observed: {url: 'https://network.mercury-hq.com/buy/matter', status: 503, fetched: '2026-09-19'}
+test_clocks: none
+magic_values: none published (no test URLs with fixed outcomes are documented; the docs use https://example.com in every example)

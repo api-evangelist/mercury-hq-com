@@ -1,0 +1,65 @@
+generated: '2026-09-19'
+method: searched
+probe: true
+source: https://network.mercury-hq.com/privacy
+signals: {}
+note: >-
+  No horizontal regulatory signal is published. MERCURY does publish a Privacy Policy
+  (https://network.mercury-hq.com/privacy, last updated 2026-06-04) stating that it "does not ask for or
+  collect personal information", keeps only minimal request logs (timestamp, route, status), retains no
+  fetched payload, sets no cookies on the API and shares nothing beyond the payment facilitator; a Terms
+  page (/terms, machine-readable as JSON); and a Trust page (/trust) with the operator's identity and a
+  "no payload retention" statement. None of those is a data-subject-request channel, a subprocessor
+  list, a DPA, an incident-notification commitment, an accessibility conformance report, an SBOM, an AI
+  transparency statement or a transparency report, so no signal is set and no pointer is emitted. The
+  privacy policy's "no personal information" position is a statement, not a DSR mechanism. Every
+  conventional path below was probed live on network.mercury-hq.com (JSON 404 for unknown routes) and on
+  mercury-hq.com (HTML 404); the world.mercury-hq.com legal pages the landing site links to returned HTTP
+  530 and could not be read. An empty signals map is the measurement.
+published_policies:
+- {kind: privacy_policy, url: 'https://network.mercury-hq.com/privacy', status: 200, updated: '2026-06-04', note: 'no PII collected; payload not retained; on-chain wallet address "not collected by us as PII"'}
+- {kind: terms_of_service, url: 'https://network.mercury-hq.com/terms', status: 200, effective: '2026-06-04', note: 'machine-readable mercury-terms/1 with Accept: application/json'}
+- {kind: trust_page, url: 'https://network.mercury-hq.com/trust', status: 200, note: 'operator identity (Mercury Holdings Pty Ltd, Queensland, ASIC registration in progress); no certifications'}
+probed_absent:
+- signal: accessibility_conformance
+  urls:
+  - {url: 'https://network.mercury-hq.com/accessibility', status: 404}
+  - {url: 'https://network.mercury-hq.com/accessibility/vpat', status: 404}
+  - {url: 'https://mercury-hq.com/accessibility', status: 404}
+- signal: subprocessors
+  urls:
+  - {url: 'https://network.mercury-hq.com/legal/subprocessors', status: 404}
+  - {url: 'https://mercury-hq.com/legal/subprocessors', status: 404}
+  note: the privacy policy names the Coinbase CDP facilitator as the only third party but publishes no dated subprocessor table
+- signal: data_subject_request
+  urls:
+  - {url: 'https://network.mercury-hq.com/privacy/requests', status: 404}
+  - {url: 'https://network.mercury-hq.com/legal/dpa', status: 404}
+- signal: incident_notification
+  urls:
+  - {url: 'https://network.mercury-hq.com/legal/dpa', status: 404}
+- signal: sbom
+  urls:
+  - {url: 'https://network.mercury-hq.com/security/sbom', status: 404}
+  - {url: 'https://network.mercury-hq.com/security', status: 404}
+  note: never derived - search only; the npm package mercury-x402-mcp ships no SBOM
+- signal: data_residency
+  urls:
+  - {url: 'https://network.mercury-hq.com/docs/data-residency', status: 404}
+  note: the origin runs on Fly.io (fly-request-id ...-ewr suggests a US-East edge); an inferred region is not a published commitment
+- signal: ai_transparency
+  urls:
+  - {url: 'https://network.mercury-hq.com/ai/transparency', status: 404}
+  note: the docs state the services are deterministic and use "no LLM" - a product claim, not an AI Act transparency statement
+- signal: transparency_report
+  urls:
+  - {url: 'https://network.mercury-hq.com/transparency', status: 404}
+- signal: notice_and_action
+  urls:
+  - {url: 'https://network.mercury-hq.com/legal/report-content', status: 404}
+- signal: support_lifetime
+  urls:
+  - {url: 'https://network.mercury-hq.com/terms', status: 200, note: 'states "We may change pricing, routes, or availability" - no support period'}
+- signal: global_privacy_control
+  urls:
+  - {url: 'https://network.mercury-hq.com/privacy', status: 200, note: 'no GPC statement; never set from a header probe'}

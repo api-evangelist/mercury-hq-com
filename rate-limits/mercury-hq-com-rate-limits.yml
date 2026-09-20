@@ -1,0 +1,64 @@
+generated: '2026-09-19'
+method: searched
+source: https://network.mercury-hq.com/pricing
+sources:
+- https://network.mercury-hq.com/pricing (tier table with a "Rate limit" column)
+- https://network.mercury-hq.com/university/developers (key-issuance cap)
+- https://network.mercury-hq.com/terms ("honours target robots/rate limits on a best-effort basis" - about upstream sites, not a limit on callers)
+- response headers observed 2026-09-19 on GET /buy/fetch (402), GET /buy/signal (200), GET /buy/matter (503), POST /mcp tools/list (200), POST /a2a (200), GET /openapi.json (200)
+- text search of openapi.json, llms.txt, /catalog and /.well-known/x402 for "rate limit", "429", "quota", "Retry-After"
+limit_count: 4
+description: >-
+  Published limits exist only on the API-key rail and are per key per minute, stated in the /pricing tier
+  table; the x402 rail publishes no request limit - an unpaid caller is stopped by the 402 payment
+  challenge rather than a quota, and nothing on the docs, OpenAPI, llms.txt or discovery documents mentions
+  a per-wallet ceiling. No rate-limit header (RateLimit-*, X-RateLimit-*) appeared on any probed response
+  and the status code and body returned on exhaustion are undocumented, so an agent on the key rail has
+  the number but no runtime signal. The one Retry-After observed (3600) was on the 503 mint-disabled
+  response of a gated SKU, which is a delivery-off signal, not throttling.
+limits:
+- scope: per API key (Sandbox tier, mk_test_)
+  window: 1 minute
+  limit: 5
+  burst: not stated
+  quota: 100 credits per month
+  source: https://network.mercury-hq.com/pricing
+- scope: per API key (Pro tier, $29/mo)
+  window: 1 minute
+  limit: 120
+  burst: not stated
+  quota: 50,000 credits per month
+  source: https://network.mercury-hq.com/pricing
+- scope: per API key (Business tier, $199/mo)
+  window: 1 minute
+  limit: 600
+  burst: not stated
+  quota: 1,000,000 credits per month
+  source: https://network.mercury-hq.com/pricing
+- scope: per IP (sandbox key issuance, POST /api/dev/keys)
+  window: 1 hour
+  limit: 20 keys
+  source: https://network.mercury-hq.com/university/developers ("issuance is capped at 20 keys per IP per hour")
+- scope: per API key (Enterprise tier, $1500/mo)
+  window: null
+  limit: null
+  note: the tier table shows "—" for rate limit and "unmetered" credits; no number is stated
+- scope: x402 rail (keyless, per call)
+  window: null
+  limit: null
+  note: no request limit published; each call is gated by a 402 challenge for the SKU price; per-call caps that do exist are payload caps (5s timeout, 10MB body, urls <=20 on /buy/batch, prevText/content <=256KB)
+response_headers:
+  observed: [retry-after (only on the 503 mint-disabled response, value 3600)]
+  checked_for: [RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset, RateLimit-Policy, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After]
+  note: no rate-limit header on any 200, 402 or MCP response; headers seen were x-powered-by Express, etag, server Fly/..., via fly.io, fly-request-id
+exhaustion_status: null
+exhaustion_note: undocumented - neither 429 nor a credit-exhausted error shape is described; /developers says "Check your balance - GET /api/dev/balance" (401 without a key)
+x-evidence:
+  fetched: '2026-09-19'
+  probes:
+  - {url: 'https://network.mercury-hq.com/buy/fetch?url=https://example.com', method: 'GET (unpaid)', status: 402, rate_limit_headers: none}
+  - {url: 'https://network.mercury-hq.com/buy/signal', method: GET, status: 200, rate_limit_headers: none}
+  - {url: 'https://network.mercury-hq.com/buy/matter', method: GET, status: 503, headers: 'retry-after: 3600'}
+  - {url: 'https://network.mercury-hq.com/mcp', method: 'POST tools/list', status: 200, rate_limit_headers: none}
+  - {url: 'https://network.mercury-hq.com/api/dev/balance', method: GET, status: 401}
+  - {url: 'https://network.mercury-hq.com/pricing', status: 200}

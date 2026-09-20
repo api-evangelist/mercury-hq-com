@@ -1,0 +1,20 @@
+generated: '2026-09-19'
+method: probed
+source: live DNS/TLS/HTTP probes of apis.yml + OpenAPI hosts
+hosts:
+- host: mercury-hq.com
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Nov  5 11:40:30 2026 GMT
+  hsts: false
+- host: network.mercury-hq.com
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Nov  3 11:41:42 2026 GMT
+  hsts: false
+domains:
+- domain: mercury-hq.com
+  dnssec: false
+  caa: []
+  spf: false
+  dmarc: false

@@ -1,0 +1,20 @@
+generated: '2026-09-19'
+method: generated
+source: operationIds verified by grep in openapi/mercury-hq-com-x402-storefront-openapi.yml; MCP tool names from the live tools/list (mcp/mercury-hq-com-mcp-tools-list.json); 402 and receipt shapes observed live 2026-09-19. MERCURY publishes no skills/AGENTS.md of its own (llms.txt is the closest and is saved in llms/).
+skills:
+- file: mercury-hq-com-verifiable-web-fetch.md
+  name: Fetch a page with a verifiable provenance receipt over x402
+  api: openapi/mercury-hq-com-x402-storefront-openapi.yml
+  operations: [buy_web_fetch, buy_cited_markdown, buy_cited_readability]
+- file: mercury-hq-com-structured-extract.md
+  name: Turn a page into a typed JSON record and validate an API response
+  api: openapi/mercury-hq-com-x402-storefront-openapi.yml
+  operations: [buy_extract, buy_cited_metadata, buy_cited_table, buy_cited_validate]
+- file: mercury-hq-com-monitor-and-prove-change.md
+  name: Monitor a URL and prove it changed (availability, diff, notarize, batch)
+  api: openapi/mercury-hq-com-x402-storefront-openapi.yml
+  operations: [buy_cited_availability, buy_cited_diff, buy_cited_notarize, buy_cited_batch]
+- file: mercury-hq-com-use-the-mcp-server.md
+  name: Call MERCURY through its MCP server (hosted with an API key, or stdio with a wallet)
+  api: mcp/mercury-hq-com-mcp.yml
+  operations: [buy_web_fetch, buy_cited_robots, buy_cited_sitemap, buy_cited_dns]

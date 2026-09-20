@@ -1,0 +1,87 @@
+generated: '2026-09-19'
+method: derived
+source:
+- openapi/mercury-hq-com-x402-storefront-openapi.yml (responses 200 and 402 on 18 paid operations; 200 schema declares ok:false + error for honest failures)
+- live unpaid GET https://network.mercury-hq.com/buy/fetch?url=https://example.com (402), GET /buy/matter (503), GET /nonexistent-probe-x1 (404), GET /api/dev/balance (401), POST /a2a tasks/get (JSON-RPC -32601), POST /mcp tools/call unknown tool (isError) - all 2026-09-19
+- https://network.mercury-hq.com/terms ("A fetch that returns an honest failure ... is still a delivered attempt")
+- https://network.mercury-hq.com/university/docs ("Failures 503 before charging - you are never billed for a stub")
+description: >-
+  Error semantics of the MERCURY storefront. The OpenAPI declares only two statuses per paid route - 200
+  (delivered after settlement) and 402 (payment required) - and folds upstream failures INTO the 200: a
+  fetch whose target is down still returns HTTP 200 with ok:false and an error string, and is still
+  charged ("pay per ATTEMPT"). Everything else was learned from the wire. There is no human error
+  reference page; there is no application/problem+json; every error body is JSON with an ok:false or
+  error field and, on 404, a discovery block pointing an agent back at the catalog.
+format: proprietary-json
+envelope:
+  success: '{ok: true, url, status, ...service fields..., attestation{keyId, alg, address, contentHash, nonce, signedAt, signature, verify{message, howTo}}}'
+  honest_failure_200: '{ok: false, url, status (upstream), error} - HTTP 200, charged'
+  http_error: '{ok: false, error, status?, reason?, discovery?, hint?}'
+  payment_required_402: '{x402Version: 1, error: "X-PAYMENT header is required", accepts: [{scheme, network, maxAmountRequired, resource, description, mimeType, payTo, maxTimeoutSeconds, asset, outputSchema{input, output}, extra{name, version}}]}'
+  json_rpc: '{jsonrpc: "2.0", id, error: {code, message}}'
+  mcp_tool_error: '{jsonrpc: "2.0", id, result: {content: [{type: text, text}], isError: true}}'
+problem_types:
+- status: 402
+  code: payment_required
+  title: Payment required (x402 challenge)
+  detail: >-
+    The designed first response of every paid /buy/* route when no X-PAYMENT header is present. Body is
+    x402 v1: x402Version 1, error "X-PAYMENT header is required", accepts[] with the exact price in base
+    units (maxAmountRequired "3000" = $0.003 USDC), network base, asset 0x8335...2913, payTo, resource,
+    maxTimeoutSeconds 60 and an outputSchema echoing the operation's input and output JSON Schema. No
+    WWW-Authenticate header; no Retry-After.
+  remediation: "Sign an x402 payment for maxAmountRequired with an x402 client (x402-fetch / x402-axios) and replay the identical request with the X-PAYMENT header, or send Authorization: Bearer mk_... (API-key rail) instead."
+  source_operation: openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_web_fetch (declared on all 18 paid operations)
+  observed: {url: 'https://network.mercury-hq.com/buy/fetch?url=https://example.com', status: 402, content_type: 'application/json; charset=utf-8', fetched: '2026-09-19'}
+- status: 200
+  code: ok_false
+  title: Honest failure (delivered attempt)
+  detail: >-
+    The OpenAPI 200 schema declares ok (boolean, "false on an honest failure (still delivered)") and error
+    ("present only when ok:false"); the terms define this as a delivered, charged attempt (e.g. target down,
+    unreachable, SSRF-blocked, timeout after 5s, body over 10MB is truncated with truncated:true).
+  remediation: Inspect ok before using text/data; do not retry blindly - every retry that settles is a new charge.
+  source_operation: openapi/mercury-hq-com-x402-storefront-openapi.yml#buy_web_fetch
+- status: 503
+  code: mint-disabled
+  title: Item cannot be delivered - payment refused
+  detail: >-
+    Returned by the gated in-game mint SKUs (/buy/matter, /buy/agent, ...) that llms.txt lists but
+    /catalog omits: {ok:false, error:"on-chain delivery is OFF, so this item cannot be delivered - refusing
+    payment. We never charge without delivering.", reason:"mint-disabled", deliverable:false} with
+    Retry-After 3600. The docs state "Failures 503 before charging - you are never billed for a stub".
+  remediation: Treat as unavailable; nothing was charged. Retry-After is 3600 seconds.
+  observed: {url: 'https://network.mercury-hq.com/buy/matter', status: 503, retry_after: 3600, fetched: '2026-09-19'}
+- status: 404
+  code: no_x402_resource
+  title: No x402 resource at this route
+  detail: '{ok:false, error:"No x402 resource at GET /<path>.", status:404, discovery:{x402, catalog, openapi, manifest}, hint:"GET /catalog (free) to list every purchasable resource, route and price."} - also the shape returned for every absent /.well-known/* path on this host.'
+  remediation: Read /catalog or /openapi.json for the live route list.
+  observed: {url: 'https://network.mercury-hq.com/nonexistent-probe-x1', status: 404, fetched: '2026-09-19'}
+- status: 401
+  code: unauthorized
+  title: API key required
+  detail: 'GET /api/dev/balance without a Bearer key returned 401 with a 56-byte JSON {error} body; the key-management routes (/api/dev/keys, /api/dev/balance, /api/dev/topup) are outside the OpenAPI.'
+  remediation: 'Send Authorization: Bearer mk_test_... / mk_live_... (issue one at /developers).'
+  observed: {url: 'https://network.mercury-hq.com/api/dev/balance', status: 401, fetched: '2026-09-19'}
+- status: 200
+  code: -32601
+  title: JSON-RPC method not supported (A2A)
+  detail: "POST /a2a with tasks/get returned {jsonrpc:'2.0', id, error:{code:-32601, message:\"method 'tasks/get' not supported - Mercury implements message/send\"}}; only message/send is implemented."
+  remediation: Use message/send with a text part containing the URL to fetch; the unpaid call returns a free preview.
+  observed: {url: 'https://network.mercury-hq.com/a2a', method: 'POST tasks/get', status: 200, fetched: '2026-09-19'}
+- status: 200
+  code: mcp_tool_error
+  title: Unknown tool (MCP)
+  detail: 'POST /mcp tools/call with an unknown name returned result {content:[{type:text, text:"Unknown tool \"web_fetch\". Call tools/list for the catalog."}], isError:true}; tool names are the bare SKU verbs (fetch, extract, markdown, ...). tools/call with a valid name and no key is documented to require Authorization: Bearer mk_... (not exercised).'
+  remediation: 'Call tools/list first; supply a Mercury API key for tools/call.'
+  observed: {url: 'https://network.mercury-hq.com/mcp', method: 'POST tools/call', status: 200, fetched: '2026-09-19'}
+- status: 530
+  code: origin_unreachable
+  title: Consumer hosts unreachable
+  detail: world.mercury-hq.com, apps.mercury-hq.com, api.mercury-hq.com and docs.mercury-hq.com returned Cloudflare HTTP 530 (17-byte text/plain) on 2026-09-19; the Terms/Privacy/Sign-in links on the mercury-hq.com landing page point at world.mercury-hq.com and are therefore dead. Not an API error; recorded because it affects the pointers this record could emit.
+  observed: {url: 'https://world.mercury-hq.com/legal/terms', status: 530, fetched: '2026-09-19'}
+not_declared:
+- '400 (bad/missing url) - not in the spec and not observed; the batch/notarize/dns parameter constraints (maxLength, either-or) imply validation errors exist but their shape is unpublished'
+- '429 - not in the spec, not observed, exhaustion shape for the per-minute tier limits is unpublished'
+- '5xx other than the 503 mint-disabled - the terms promise "never a silent charge-then-500" but no 500 shape is published'

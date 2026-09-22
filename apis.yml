@@ -33,6 +33,20 @@ tags:
 - Data Extraction
 - Provenance
 - Stablecoins
+- Artificial Intelligence
+tags_raw:
+- Company
+- Agents
+- A2A
+- MCP
+- x402
+- HTTP 402
+- Machine Payments
+- Web Data
+- Web Scraping
+- Data Extraction
+- Provenance
+- Stablecoins
 - AI
 apis:
 - name: MERCURY x402 Storefront API

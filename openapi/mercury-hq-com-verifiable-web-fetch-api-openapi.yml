@@ -1,0 +1,221 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Verifiable Web Fetch API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged verifiable-web-fetch across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: verifiable-web-fetch
+paths:
+  /buy/fetch:
+    get:
+      summary: MERCURY Verifiable Web Fetch
+      description: 'VERIFIABLE keyless web-read for autonomous agents. Every result ships a cryptographically SIGNED provenance receipt (EIP-191 over sha256(text)+url+status+time) — the wedge a free scraper structurally CANNOT match: Jina r.jina.ai is free+keyless too, but its bytes are HEARSAY (no proof of what/where/when). MERCURY''s `attestation` is ecrecoverable OFFLINE, forever, by you OR any downstream agent you forward the bytes to — proving the content is genuine + untampered (key pinned at /.well-known/mercury-attestation). For RAG, trading and agent-to-agent commerce that need provenance, that is the gap between data and evidence. Beyond that it''s the keyless web-read primitive — NO API key, NO signup, NO account, NO monthly plan, the one fetch SKU a fresh agent can onboard to by itself instead of stopping to ask a human for a key. Give a ?url= and get back clean readable page text + title + status. Agent-native extras (opt-in): ?format=markdown for structure-preserving markdown, ?links=1 for an outbound-link graph (crawl frontier), and the headline wedge — STRUCTURED EXTRACT: ?extract=title,price,author,publishedAt returns a clean JSON record { title, price, author, publishedAt }, an LLM-ready row not a wall of text. That is Firecrawl''s paid ''JSON mode'' (they need an LLM call + an API key for it) done here DETERMINISTICALLY from the page''s own JSON-LD/OpenGraph/meta/microdata — keyless, no LLM, $0.003. (?extract=1 still returns the legacy description + wordCount.) The extracted record is folded into the SIGNED attestation too, so a buyer can prove the FIELDS — not just the raw bytes — are exactly what MERCURY resolved. You pay in-band over HTTP 402 (x402, USDC on Base mainnet) — the wedge those tools can''t match: they ALL gate behind a human-created API key + a credit-card plan, so an agent can''t onboard itself. This one an agent finds in the x402 Bazaar and pays with zero human in the loop. Honest charge-per-ATTEMPT: every call returns a structured result (success OR an ok:false failure with a reason) — never a silent charge-then-500. Follows redirects, SSRF-guarded, 5s timeout, 10MB cap. Pure data, no mint — delivers in prod.'
+      operationId: buy_web_fetch
+      tags:
+      - verifiable-web-fetch
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true on success; false on an honest failure (still delivered)
+                  url:
+                    type: string
+                    description: final URL after redirects
+                  status:
+                    type: integer
+                    description: upstream HTTP status
+                  title:
+                    type: string
+                    description: page <title> (HTML pages only)
+                  text:
+                    type: string
+                    description: cleaned, readable page text (or markdown if ?format=markdown)
+                  format:
+                    type: string
+                    enum:
+                    - markdown
+                    description: echoed only when ?format=markdown was requested
+                  description:
+                    type: string
+                    description: page meta/og description (only when ?extract=1)
+                  wordCount:
+                    type: integer
+                    description: word count of returned text (only when ?extract=1)
+                  extract:
+                    type: object
+                    description: 'STRUCTURED JSON record (only when ?extract=<comma-list of fields>). The Firecrawl-JSON-mode wedge: each requested field resolved from JSON-LD/OpenGraph/meta/microdata, absent fields null. Deterministic, keyless, no LLM call. The signed attestation covers this record too.'
+                    additionalProperties:
+                      type:
+                      - string
+                      - number
+                      - boolean
+                      - 'null'
+                  links:
+                    type: array
+                    description: outbound-link graph, same-origin first (only when ?links=1)
+                    items:
+                      type: object
+                      properties:
+                        url:
+                          type: string
+                        text:
+                          type: string
+                  contentType:
+                    type: string
+                  bytes:
+                    type: integer
+                    description: raw body size
+                  truncated:
+                    type: boolean
+                  error:
+                    type: string
+                    description: present only when ok:false
+                  attestation:
+                    type: object
+                    description: 'EIP-191 provenance receipt: a signature over sha256(text)+url+status+time, verifiable OFFLINE by anyone (key pinned at /.well-known/mercury-attestation). Proves the content is genuine + untampered — the non-commodity edge of a signed-payment seller.'
+                    properties:
+                      keyId:
+                        type: string
+                        description: versioned key id (scheme + signer address)
+                      alg:
+                        type: string
+                        description: EIP-191-personal_sign
+                      address:
+                        type: string
+                        description: the signer address; recover() must equal this
+                      contentHash:
+                        type: string
+                        description: 0x… sha256 hex of `text`
+                      nonce:
+                        type: string
+                      signedAt:
+                        type: string
+                      signature:
+                        type: string
+                        description: 0x… 65-byte EIP-191 signature
+                      verify:
+                        type: object
+                        description: the exact signed `message` + a one-line howTo, so verification needs no MERCURY SDK
+                        properties:
+                          message:
+                            type: string
+                          howTo:
+                            type: string
+                required:
+                - ok
+                - url
+                additionalProperties: false
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 2048
+          description: the page to fetch (http/https)
+        description: the page to fetch (http/https)
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - text
+          - markdown
+          description: text (default) or structure-preserving markdown
+        description: text (default) or structure-preserving markdown
+      - name: links
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - '0'
+          - '1'
+          description: 1 = also return the outbound-link graph (crawl frontier)
+        description: 1 = also return the outbound-link graph (crawl frontier)
+      - name: extract
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 256
+          description: 1 = page description + wordCount; OR a comma-list of field names (e.g. title,price,author,publishedAt) to get a structured JSON record under `extract`
+        description: 1 = page description + wordCount; OR a comma-list of field names (e.g. title,price,author,publishedAt) to get a structured JSON record under `extract`
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.003
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.003
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+        accepts:
+        - scheme: exact
+          network: eip155:8453
+          amount: '3000'
+          price: $0.003
+          asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+          payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+          extra:
+            tier: fetch
+            includes: clean page text + signed provenance receipt
+        - scheme: exact
+          network: eip155:8453
+          amount: '6000'
+          price: $0.006
+          asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+          payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+          extra:
+            tier: plus
+            includes: + markdown structure + outbound-link graph
+        - scheme: exact
+          network: eip155:8453
+          amount: '12000'
+          price: $0.012
+          asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+          payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+          extra:
+            tier: pro
+            includes: + deterministic structured-extract JSON record
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

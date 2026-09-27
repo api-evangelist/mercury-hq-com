@@ -1,0 +1,158 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Cited Redirect API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged cited-redirect across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: cited-redirect
+paths:
+  /buy/redirect:
+    get:
+      summary: MERCURY Cited Redirect
+      description: 'URL → a SIGNED redirect/canonical resolution: the full hop chain [{url,status}] from the link you have to where it ACTUALLY lands, the final resolved URL + status, the page''s , hop count, cross-origin flag and distinct origins traversed (affiliate-cloak / link-safety signal). Deterministic — same redirects ⇒ byte-identical resolution; no LLM. Follows HTTP 3xx only (no JS/meta-refresh execution — meta-refresh target surfaced un-followed). Receipt = EIP-191 over the resolved chain.'
+      operationId: buy_cited_redirect
+      tags:
+      - cited-redirect
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true on success; false on an honest failure (still delivered)
+                  url:
+                    type: string
+                    description: final resolved URL after following all HTTP 3xx redirects
+                  status:
+                    type: integer
+                    description: upstream HTTP status of the FINAL resolved URL
+                  data:
+                    type: object
+                    description: the structured redirect/canonical resolution (the product the buyer consumes)
+                    properties:
+                      requestedUrl:
+                        type: string
+                        description: the URL the buyer asked us to resolve
+                      finalUrl:
+                        type: string
+                        description: the destination after all redirects (where the link ACTUALLY goes)
+                      finalStatus:
+                        type: integer
+                        description: upstream HTTP status of the final URL
+                      finalOrigin:
+                        type: string
+                        description: scheme://host of the final URL
+                      canonical:
+                        type:
+                        - string
+                        - 'null'
+                        description: the final page's <link rel=canonical> href, or null
+                      metaRefresh:
+                        type:
+                        - string
+                        - 'null'
+                        description: an UN-followed <meta refresh> target on the final page (JS/meta hops are not executed), or null
+                      hopCount:
+                        type: integer
+                        description: number of redirect hops followed (0 = no redirect, direct hit)
+                      redirected:
+                        type: boolean
+                        description: true if the requested URL was redirected at least once
+                      crossOrigin:
+                        type: boolean
+                        description: true if the final origin differs from the requested origin (cloak/affiliate signal)
+                      distinctOrigins:
+                        type: array
+                        description: ordered, de-duplicated origins traversed from requested → final (how many hosts a single click routes through)
+                        items:
+                          type: string
+                      hops:
+                        type: array
+                        description: 'the full hop chain: each step''s URL, its origin, and its HTTP status (null on an intermediate hop whose exact 3xx code the engine did not capture)'
+                        items:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                            origin:
+                              type: string
+                              description: scheme://host of this hop
+                            status:
+                              type:
+                              - integer
+                              - 'null'
+                              description: HTTP status (final hop = real status; intermediate = null when uncaptured)
+                            redirect:
+                              type: boolean
+                              description: true for an intermediate redirect step, false for the final destination
+                  text:
+                    type: string
+                    description: 'canonical newline string the signed receipt covers (one row per hop: `<status>\t<url>`, requested→final order; trailing `canonical\t<href>`)'
+                  contentType:
+                    type: string
+                  fetchedAt:
+                    type: string
+                    description: ISO8601 fetch time (in the signed payload)
+                  error:
+                    type: string
+                    description: present only when ok:false
+                required:
+                - ok
+                - url
+                additionalProperties: false
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 2048
+          description: the link/URL to resolve (http/https) — e.g. a shortlink or affiliate URL
+        description: the link/URL to resolve (http/https) — e.g. a shortlink or affiliate URL
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.005
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.005
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

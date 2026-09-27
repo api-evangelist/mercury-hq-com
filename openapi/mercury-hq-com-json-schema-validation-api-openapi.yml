@@ -1,0 +1,181 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com JSON Schema Validation API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged json-schema-validation across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: json-schema-validation
+paths:
+  /buy/validate:
+    get:
+      summary: Cited Validate — JSON API response vs JSON Schema, signed pass/fail + per-field…
+      description: URL (a JSON/API endpoint) + a JSON Schema in → a deterministic pass/fail with per-field errors (missing/wrong-type/enum/range/pattern), plus a signed provenance receipt binding the verdict to the exact response bytes AND the exact schema. Deterministic, keyless, no LLM — x402, USDC on Base mainnet.
+      operationId: buy_cited_validate
+      tags:
+      - json-schema-validation
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true when the validation RAN (delivered); false on an honest undeliverable (503-before-charge)
+                  url:
+                    type: string
+                    description: final URL after redirects
+                  status:
+                    type: integer
+                    description: upstream HTTP status of the fetched JSON
+                  text:
+                    type: string
+                    description: 'the canonical signed string: JSON.stringify(report, sorted-keys) — the exact bytes the provenance receipt covers (embeds documentHash + schemaHash + verdict)'
+                  fetchedAt:
+                    type: string
+                    description: ISO timestamp of the fetch (also in the signed attestation)
+                  data:
+                    type: object
+                    description: the validation report the buyer consumes
+                    properties:
+                      valid:
+                        type: boolean
+                        description: true iff the fetched JSON conforms to the schema with zero errors
+                      errorCount:
+                        type: integer
+                        description: number of validation errors found
+                      errors:
+                        type: array
+                        description: per-field errors in document order (empty when valid)
+                        items:
+                          type: object
+                          properties:
+                            path:
+                              type: string
+                              description: JSON-Pointer path to the offending value
+                            keyword:
+                              type: string
+                              description: the schema keyword that failed (type, required, enum, minimum, pattern, …)
+                            message:
+                              type: string
+                              description: human-readable reason
+                      truncated:
+                        type: boolean
+                        description: true if the error cap clipped the list (still honest about more existing)
+                      documentHash:
+                        type: string
+                        description: 0x… sha256 of the canonical JSON document that was validated
+                      schemaHash:
+                        type: string
+                        description: 0x… sha256 of the canonical (normalised) schema that was applied
+                      schemaForm:
+                        type: string
+                        description: 'which input form was used: compact | json-schema | shorthand'
+                      pointer:
+                        type: string
+                        description: the JSON-Pointer applied (empty for whole-body validation)
+                      validatedType:
+                        type: string
+                        description: the JSON type of the validated (sub-)document
+                  attestation:
+                    type: object
+                    description: 'EIP-191 provenance receipt over `text` (the canonical sorted-key JSON of the report, which embeds documentHash + schemaHash + verdict), ecrecoverable OFFLINE (key at /.well-known/mercury-attestation). Proves: which schema was checked, which bytes were checked, and the verdict — all at fetchedAt.'
+                    properties:
+                      keyId:
+                        type: string
+                      alg:
+                        type: string
+                      address:
+                        type: string
+                      contentHash:
+                        type: string
+                      nonce:
+                        type: string
+                      signedAt:
+                        type: string
+                      signature:
+                        type: string
+                      verify:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                          howTo:
+                            type: string
+                  error:
+                    type: string
+                    description: present only when ok:false (undeliverable, not charged)
+                required:
+                - ok
+                - url
+                additionalProperties: true
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 2048
+          description: the JSON/API endpoint to fetch + validate (http/https)
+        description: the JSON/API endpoint to fetch + validate (http/https)
+      - name: schema
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 16384
+          description: 'the JSON Schema to validate against. THREE accepted forms: (1) COMPACT URL-native comma list of field[:type] (type in string|number|integer|boolean|array|object|null; default string), e.g. id:integer,name,price:number,inStock:boolean — every field becomes a REQUIRED typed property; (2) a JSON-Schema string (Draft-07 core subset: type/required/properties/items/enum/const/min*/max*/pattern/format/additionalProperties/nullable/anyOf/oneOf/allOf/not); (3) a shorthand-map string {"id":"integer","name":"string"}.'
+        description: 'the JSON Schema to validate against. THREE accepted forms: (1) COMPACT URL-native comma list of field[:type] (type in string|number|integer|boolean|array|object|null; default string), e.g. id:integer,name,price:number,inStock:boolean — every field becomes a REQUIRED typed property; (2) a JSON-Schema string (Draft-07 core subset: type/required/properties/items/enum/const/min*/max*/pattern/format/additionalProperties/nullable/anyOf/oneOf/allOf/not); (3) a shorthand-map string {"id":"integer","name":"string"}.'
+      - name: pointer
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 256
+          description: optional JSON-Pointer (e.g. /data or /result/0) to validate a SUB-DOCUMENT of the response instead of the whole body (for APIs that wrap the payload).
+        description: optional JSON-Pointer (e.g. /data or /result/0) to validate a SUB-DOCUMENT of the response instead of the whole body (for APIs that wrap the payload).
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.005
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.005
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

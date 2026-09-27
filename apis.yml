@@ -49,76 +49,15 @@ tags_raw:
 - Stablecoins
 - AI
 apis:
-- name: MERCURY x402 Storefront API
-  description: >-
-    REST/JSON API (OpenAPI 3.1.0, info.title "MERCURY x402 storefront", x-spec mercury-storefront/1) of 19
-    GET routes under /buy/*, one per Cited web-data service, each declaring its price in x-payment-info /
-    x-x402 and answering an unpaid call with an HTTP 402 x402 challenge (accepts[] with scheme exact,
-    network base, USDC asset 0x8335...2913, payTo and maxTimeoutSeconds 60). Paid results carry an
-    attestation object (EIP-191 signature over sha256(text), url, status, fetchedAt, nonce) verifiable
-    offline against /.well-known/mercury-attestation. /buy/signal is a free $0 demo read. The same routes
-    accept Authorization: Bearer mk_test_/mk_live_ API keys issued at /developers. The spec declares no
-    securitySchemes, no components and no examples; every operation has an operationId, summary,
-    description, tags and 200/402 responses.
-  image: https://network.mercury-hq.com/favicon.svg
-  humanURL: https://network.mercury-hq.com/university/docs
-  baseURL: https://network.mercury-hq.com
-  tags:
-  - x402
-  - Web Scraping
-  - Data Extraction
-  - Provenance
-  - Machine Payments
-  - Web Data
-  properties:
-  - type: OpenAPI
-    url: openapi/mercury-hq-com-x402-storefront-openapi.yml
-  - type: OpenAPI
-    url: https://network.mercury-hq.com/openapi.json
-    name: OpenAPI (provider-hosted; identical paths served at https://mercury-x402-jed.fly.dev/openapi.json, the Fly.io origin)
-  - type: Documentation
-    url: https://network.mercury-hq.com/university
-  - type: APIReference
-    url: https://network.mercury-hq.com/university/docs
-  - type: GettingStarted
-    url: https://network.mercury-hq.com/university/developers
-  - type: DeveloperPortal
-    url: https://network.mercury-hq.com/developers
-  - type: Pricing
-    url: https://network.mercury-hq.com/pricing
-  - type: Overlay
-    url: overlays/mercury-hq-com-x402-storefront-overlay.yaml
-  - type: Authentication
-    url: authentication/mercury-hq-com-authentication.yml
-  - type: Conventions
-    url: conventions/mercury-hq-com-conventions.yml
-  - type: ErrorCatalog
-    url: errors/mercury-hq-com-problem-types.yml
-  - type: Lifecycle
-    url: lifecycle/mercury-hq-com-lifecycle.yml
-  - type: Plans
-    url: plans/mercury-hq-com-plans-pricing.yml
-  - type: RateLimits
-    url: rate-limits/mercury-hq-com-rate-limits.yml
-  - type: Sandbox
-    url: sandbox/mercury-hq-com-sandbox.yml
-  - type: DataModel
-    url: data-model/mercury-hq-com-data-model.yml
-  - type: Conformance
-    url: conformance/mercury-hq-com-conformance.yml
-  - type: AgentSkill
-    url: skills/_index.yml
-  - type: AgenticAccess
-    url: agentic-access/mercury-hq-com-agentic-access.yml
 - name: MERCURY Web Fetch A2A Agent
   description: >-
     Agent-to-Agent (A2A 0.3.0) surface for "MERCURY Web Fetch", published as a conformant agent card at
     https://network.mercury-hq.com/.well-known/agent-card.json (and the legacy /.well-known/agent.json,
-    byte-identical) with one skill (web-fetch), JSONRPC preferred transport, an x402 security scheme
-    (pay per call, $0.003 USDC on Base) and an ERC-8004 registration (agentId 54791 on eip155:8453). The
-    JSON-RPC endpoint https://network.mercury-hq.com/a2a implements message/send only (tasks/get answers
-    -32601 "Mercury implements message/send"); an unpaid message/send returns a free preview with the
-    page title and status and points at the paid /buy/fetch route. GET on /a2a 307-redirects to the card.
+    byte-identical) with one skill (web-fetch), JSONRPC preferred transport, an x402 security scheme (pay
+    per call, $0.003 USDC on Base) and an ERC-8004 registration (agentId 54791 on eip155:8453). The JSON-RPC
+    endpoint https://network.mercury-hq.com/a2a implements message/send only (tasks/get answers -32601
+    "Mercury implements message/send"); an unpaid message/send returns a free preview with the page title
+    and status and points at the paid /buy/fetch route. GET on /a2a 307-redirects to the card.
   image: https://network.mercury-hq.com/favicon.svg
   humanURL: https://network.mercury-hq.com/university/docs/web-fetch
   baseURL: https://network.mercury-hq.com/a2a
@@ -139,13 +78,12 @@ apis:
     url: conformance/mercury-hq-com-conformance.yml
 - name: MERCURY MCP Server
   description: >-
-    Hosted Model Context Protocol server (serverInfo mercury-x402 1.0.0, protocolVersion 2025-06-18,
-    streamable HTTP, JSON-RPC 2.0 over POST https://network.mercury-hq.com/mcp) exposing 18 tools that
-    mirror the 18 paid /buy/* routes one-to-one, each with a real inputSchema. tools/list and initialize
-    are free and unauthenticated; tools/call requires a Mercury API key (Authorization: Bearer mk_...).
-    A first-party stdio package, mercury-x402-mcp on npm (npx -y mercury-x402-mcp, wallet key in
-    MERCURY_PRIVATE_KEY), wraps the same catalog for wallet-paying agents and adds free mercury_catalog
-    and mercury_verify tools.
+    Hosted Model Context Protocol server (serverInfo mercury-x402 1.0.0, protocolVersion 2025-06-18, streamable
+    HTTP, JSON-RPC 2.0 over POST https://network.mercury-hq.com/mcp) exposing 18 tools that mirror the
+    18 paid /buy/* routes one-to-one, each with a real inputSchema. tools/list and initialize are free
+    and unauthenticated; tools/call requires a Mercury API key (Authorization: Bearer mk_...). A first-party
+    stdio package, mercury-x402-mcp on npm (npx -y mercury-x402-mcp, wallet key in MERCURY_PRIVATE_KEY),
+    wraps the same catalog for wallet-paying agents and adds free mercury_catalog and mercury_verify tools.
   image: https://network.mercury-hq.com/favicon.svg
   humanURL: https://network.mercury-hq.com/university/developers
   baseURL: https://network.mercury-hq.com/mcp
@@ -166,6 +104,767 @@ apis:
     url: https://network.mercury-hq.com/university/developers
   - type: Authentication
     url: authentication/mercury-hq-com-authentication.yml
+- aid: mercury-hq-com:mercury-hq-com-cited-availability-api
+  name: MERCURY Cited Availability API
+  description: The cited-availability API from MERCURY — 1 operation(s) for cited-availability.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - cited-availability
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-cited-availability-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-cited-batch-api
+  name: MERCURY Cited Batch API
+  description: The cited-batch API from MERCURY — 1 operation(s) for cited-batch.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - cited-batch
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-cited-batch-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-cited-diff-api
+  name: MERCURY Cited Diff API
+  description: The cited-diff API from MERCURY — 1 operation(s) for cited-diff.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - cited-diff
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-cited-diff-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-cited-dns-api
+  name: MERCURY Cited Dns API
+  description: The cited-dns API from MERCURY — 1 operation(s) for cited-dns.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - cited-dns
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-cited-dns-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-cited-feed-api
+  name: MERCURY Cited Feed API
+  description: The cited-feed API from MERCURY — 1 operation(s) for cited-feed.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - cited-feed
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-cited-feed-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-cited-headers-api
+  name: MERCURY Cited Headers API
+  description: The cited-headers API from MERCURY — 1 operation(s) for cited-headers.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - cited-headers
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-cited-headers-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-cited-links-api
+  name: MERCURY Cited Links API
+  description: The cited-links API from MERCURY — 1 operation(s) for cited-links.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - cited-links
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-cited-links-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-cited-markdown-api
+  name: MERCURY Cited Markdown API
+  description: The cited-markdown API from MERCURY — 1 operation(s) for cited-markdown.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - cited-markdown
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-cited-markdown-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-cited-metadata-api
+  name: MERCURY Cited Metadata API
+  description: The cited-metadata API from MERCURY — 1 operation(s) for cited-metadata.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - cited-metadata
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-cited-metadata-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-cited-readability-api
+  name: MERCURY Cited Readability API
+  description: The cited-readability API from MERCURY — 1 operation(s) for cited-readability.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - cited-readability
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-cited-readability-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-cited-redirect-api
+  name: MERCURY Cited Redirect API
+  description: The cited-redirect API from MERCURY — 1 operation(s) for cited-redirect.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - cited-redirect
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-cited-redirect-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-cited-sitemap-api
+  name: MERCURY Cited Sitemap API
+  description: The cited-sitemap API from MERCURY — 1 operation(s) for cited-sitemap.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - cited-sitemap
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-cited-sitemap-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-data-api
+  name: MERCURY Data API
+  description: The data API from MERCURY — 1 operation(s) for data.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - data
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-data-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-html-table-extraction-api
+  name: MERCURY Html Table Extraction API
+  description: The html-table-extraction API from MERCURY — 1 operation(s) for html-table-extraction.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - html-table-extraction
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-html-table-extraction-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-json-schema-validation-api
+  name: MERCURY JSON Schema Validation API
+  description: The json-schema-validation API from MERCURY — 1 operation(s) for json-schema-validation.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - json-schema-validation
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-json-schema-validation-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-notarize-api
+  name: MERCURY Notarize API
+  description: The notarize API from MERCURY — 1 operation(s) for notarize.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - notarize
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-notarize-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-robots-txt-api
+  name: MERCURY Robots Txt API
+  description: The robots-txt API from MERCURY — 1 operation(s) for robots-txt.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - robots-txt
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-robots-txt-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-structured-data-extraction-api
+  name: MERCURY Structured Data Extraction API
+  description: >-
+    The structured-data-extraction API from MERCURY — 1 operation(s) for structured-data-extraction.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - structured-data-extraction
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-structured-data-extraction-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
+- aid: mercury-hq-com:mercury-hq-com-verifiable-web-fetch-api
+  name: MERCURY Verifiable Web Fetch API
+  description: The verifiable-web-fetch API from MERCURY — 1 operation(s) for verifiable-web-fetch.
+  humanURL: https://network.mercury-hq.com/university/docs
+  baseURL: https://network.mercury-hq.com
+  tags:
+  - verifiable-web-fetch
+  properties:
+  - type: OpenAPI
+    url: openapi/mercury-hq-com-verifiable-web-fetch-api-openapi.yml
+  - type: Documentation
+    url: https://network.mercury-hq.com/university
+  - type: APIReference
+    url: https://network.mercury-hq.com/university/docs
+  - type: GettingStarted
+    url: https://network.mercury-hq.com/university/developers
+  - type: DeveloperPortal
+    url: https://network.mercury-hq.com/developers
+  - type: Pricing
+    url: https://network.mercury-hq.com/pricing
+  - type: Authentication
+    url: authentication/mercury-hq-com-authentication.yml
+  - type: Conventions
+    url: conventions/mercury-hq-com-conventions.yml
+  - type: ErrorCatalog
+    url: errors/mercury-hq-com-problem-types.yml
+  - type: Lifecycle
+    url: lifecycle/mercury-hq-com-lifecycle.yml
+  - type: Plans
+    url: plans/mercury-hq-com-plans-pricing.yml
+  - type: RateLimits
+    url: rate-limits/mercury-hq-com-rate-limits.yml
+  - type: Sandbox
+    url: sandbox/mercury-hq-com-sandbox.yml
+  - type: DataModel
+    url: data-model/mercury-hq-com-data-model.yml
+  - type: Conformance
+    url: conformance/mercury-hq-com-conformance.yml
+  - type: AgenticAccess
+    url: agentic-access/mercury-hq-com-agentic-access.yml
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
@@ -245,3 +944,18 @@ x-enrichment:
   status: enriched
   artifacts_added: 36
   pass: local-v3
+x-x402:
+  verified: true
+  probed: '2026-09-24'
+  url: "https://network.mercury-hq.com/buy/dns"
+  evidence:
+  - "body:x402Version"
+  - "body:accepts[scheme,payTo,asset]"
+  control: 404
+x-a2a:
+  verified: true
+  probed: '2026-09-26'
+  url: "https://network.mercury-hq.com/.well-known/agent-card.json"
+  grade: "conformant"
+  protocol_version: "0.3.0"
+  control: 404

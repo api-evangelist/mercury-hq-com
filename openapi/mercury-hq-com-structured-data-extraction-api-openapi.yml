@@ -1,0 +1,180 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Structured Data Extraction API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged structured-data-extraction across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: structured-data-extraction
+paths:
+  /buy/extract:
+    get:
+      summary: Structured Data Extraction API — URL to typed JSON (schema extract, keyless…
+      description: 'TYPED structured extract for autonomous agents — URL + schema → a clean, type-safe JSON record. Where /buy/fetch returns page TEXT (and ?extract= returns string-only fields), THIS returns the schema-conformant object an LLM/RAG/trading pipeline actually consumes: pass ?url=…&schema=title,price:number,rating:number,inStock:boolean and get back { title:"…", price:19.99, rating:4.5, inStock:true } — numbers as numbers, booleans as booleans, absent fields null (honest). `schema` accepts the URL-friendly compact form (field[:type], type in string|number|integer|boolean) OR a Firecrawl/OpenAI-style JSON-Schema object ({"properties":{"price":{"type":"number"}}}). That is Firecrawl''s paid ''JSON mode'' headline guarantee — type-safety, ''numbers as numbers not strings'' — done DETERMINISTICALLY from the page''s own JSON-LD/OpenGraph/meta/microdata: keyless, NO LLM call, NO API key, NO signup, $0.004/call, paid in-band over HTTP 402 (x402, USDC on Base mainnet). The typed record is folded into the SIGNED provenance attestation too (EIP-191, ecrecoverable OFFLINE), so a buyer can prove the EXTRACTED FIELDS — not just raw bytes — are exactly what MERCURY resolved. Honest charge-per-ATTEMPT: every call returns a structured result (success OR an ok:false reason). Same SSRF guard, 5s timeout, 10MB cap, no mint.'
+      operationId: buy_extract
+      tags:
+      - structured-data-extraction
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true on success; false on an honest failure (still delivered)
+                  url:
+                    type: string
+                    description: final URL after redirects
+                  status:
+                    type: integer
+                    description: upstream HTTP status
+                  extract:
+                    type: object
+                    description: 'the TYPED record: each requested field resolved + coerced to its declared type (numbers as numbers, booleans as booleans), absent fields null. Deterministic, keyless, no LLM.'
+                    additionalProperties:
+                      type:
+                      - string
+                      - number
+                      - boolean
+                      - 'null'
+                  schema:
+                    type: object
+                    description: echo of the resolved field->type map that was applied
+                    additionalProperties:
+                      type: string
+                  coerced:
+                    type: array
+                    description: names of the fields that were actually type-cast (present only when non-empty)
+                    items:
+                      type: string
+                  title:
+                    type: string
+                    description: page <title>
+                  text:
+                    type: string
+                    description: cleaned page text (also returned; markdown if ?format=markdown)
+                  bytes:
+                    type: integer
+                    description: raw body size
+                  contentType:
+                    type: string
+                  truncated:
+                    type: boolean
+                  redirects:
+                    type: array
+                    items:
+                      type: string
+                    description: redirect chain followed
+                  fetchedAt:
+                    type: string
+                    description: ISO timestamp of the fetch (also in the signed attestation)
+                  metered:
+                    type: boolean
+                  delivered:
+                    type: string
+                  kind:
+                    type: string
+                  error:
+                    type: string
+                    description: present only when ok:false
+                  attestation:
+                    type: object
+                    description: EIP-191 provenance receipt over the page text + the typed extract record (canonical key order), ecrecoverable OFFLINE (key at /.well-known/mercury-attestation). Proves the FIELDS are genuine + untampered.
+                    properties:
+                      keyId:
+                        type: string
+                      alg:
+                        type: string
+                      address:
+                        type: string
+                      contentHash:
+                        type: string
+                      nonce:
+                        type: string
+                      signedAt:
+                        type: string
+                      signature:
+                        type: string
+                      verify:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                          howTo:
+                            type: string
+                required:
+                - ok
+                - url
+                additionalProperties: false
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 2048
+          description: the page to extract from (http/https)
+        description: the page to extract from (http/https)
+      - name: schema
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 1024
+          description: 'fields to extract. COMPACT: comma list of field[:type] (type in string|number|integer|boolean, default string), e.g. title,price:number,rating:number,inStock:boolean. OR a JSON-Schema string ({"properties":{"price":{"type":"number"}}}). Resolved from JSON-LD/OpenGraph/meta/microdata.'
+        description: 'fields to extract. COMPACT: comma list of field[:type] (type in string|number|integer|boolean, default string), e.g. title,price:number,rating:number,inStock:boolean. OR a JSON-Schema string ({"properties":{"price":{"type":"number"}}}). Resolved from JSON-LD/OpenGraph/meta/microdata.'
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - text
+          - markdown
+          description: 'optional: text (default) or markdown for the page-text field'
+        description: 'optional: text (default) or markdown for the page-text field'
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.004
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.004
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

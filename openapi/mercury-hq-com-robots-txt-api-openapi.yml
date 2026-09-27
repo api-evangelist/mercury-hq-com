@@ -1,0 +1,177 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Robots Txt API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged robots-txt across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: robots-txt
+paths:
+  /buy/robots:
+    get:
+      summary: AI Crawler Permission Audit — signed robots.txt / llms.txt / ai.txt verdict…
+      description: 'Domain → signed, timestamped per-AI-crawler allow/block audit from robots.txt + llms.txt + ai.txt (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, Bytespider, …). Deterministic, no LLM. EU-AI-Act / TDM opt-out evidence: the signed verdict proves the crawler policy as it stood at fetch time.'
+      operationId: buy_cited_robots
+      tags:
+      - robots-txt
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true on success; false on an honest failure (still delivered, never charged for a stub)
+                  url:
+                    type: string
+                    description: origin audited (https://host)
+                  status:
+                    type: integer
+                    description: HTTP status of the robots.txt fetch
+                  text:
+                    type: string
+                    description: canonical JSON the signed attestation is computed over (data, keys sorted)
+                  fetchedAt:
+                    type: string
+                    description: ISO-8601 fetch time — the 'as-of' moment the signed policy snapshot proves
+                  data:
+                    type: object
+                    description: the structured audit
+                    properties:
+                      version:
+                        type: string
+                      host:
+                        type: string
+                      origin:
+                        type: string
+                      evaluatedPath:
+                        type: string
+                      policies:
+                        type: object
+                        description: raw state of each crawler-policy file at fetch time
+                        additionalProperties: false
+                        properties:
+                          robots.txt:
+                            type: object
+                            additionalProperties: true
+                          llms.txt:
+                            type: object
+                            additionalProperties: true
+                          ai.txt:
+                            type: object
+                            additionalProperties: true
+                      verdicts:
+                        type: array
+                        description: per-AI-agent allow/block verdict for evaluatedPath, with the decisive rule cited
+                        items:
+                          type: object
+                          properties:
+                            agent:
+                              type: string
+                            vendor:
+                              type: string
+                            purpose:
+                              type: string
+                            verdict:
+                              type: string
+                              enum:
+                              - allowed
+                              - blocked
+                            reason:
+                              type: string
+                            decidedBy:
+                              type: string
+                            rule:
+                              type:
+                              - string
+                              - 'null'
+                      summary:
+                        type: object
+                        properties:
+                          allowed:
+                            type: integer
+                          blocked:
+                            type: integer
+                          blockedAgents:
+                            type: array
+                            items:
+                              type: string
+                          sitemaps:
+                            type: array
+                            items:
+                              type: string
+                          hasLlmsTxt:
+                            type: boolean
+                          hasAiTxt:
+                            type: boolean
+                          hasRobotsTxt:
+                            type: boolean
+                  error:
+                    type: string
+                    description: present only when ok:false
+                required:
+                - ok
+                - url
+                additionalProperties: true
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: domain
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 2048
+          description: domain or URL to audit (e.g. example.com or https://example.com/page); only the origin is used
+        description: domain or URL to audit (e.g. example.com or https://example.com/page); only the origin is used
+      - name: path
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 1024
+          description: optional path to evaluate the verdict for (default '/', the whole-site question)
+        description: optional path to evaluate the verdict for (default '/', the whole-site question)
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.005
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.005
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

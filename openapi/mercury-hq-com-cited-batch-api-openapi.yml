@@ -1,0 +1,192 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Cited Batch API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged cited-batch across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: cited-batch
+paths:
+  /buy/batch:
+    get:
+      summary: MERCURY Cited Batch — signed multi-page snapshot (Merkle root over every page's…
+      description: 'List of URLs (≤20) → clean content for each + ONE signed receipt committing to a MERKLE ROOT over every page''s contentHash. Tamper-evident multi-page snapshot with per-page membership proofs (selective disclosure). Deterministic (no LLM): same URL set + same source bytes ⇒ byte-identical root + proofs. SSRF-guarded per url; keyless x402, USDC on Base mainnet.'
+      operationId: buy_cited_batch
+      tags:
+      - cited-batch
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true on success; false on an honest failure (503-before-charge)
+                  url:
+                    type: string
+                    description: synthetic batch id (mercury-batch:<merkleRoot>) — there is no single url
+                  status:
+                    type: integer
+                    description: 200 when at least one page resolved (the batch is deliverable)
+                  text:
+                    type: string
+                    description: 'the canonical BATCH COMMITMENT string the attestation signs over: the Merkle root + counts + every (index,url,status,contentHash,leafHash). This is the proof, not the page bodies.'
+                  fetchedAt:
+                    type: string
+                    description: ISO-8601 capture time (also folded into the signed receipt)
+                  data:
+                    type: object
+                    description: the structured deliverable the buyer consumes
+                    properties:
+                      merkleRoot:
+                        type: string
+                        description: 0x… sha256 Merkle root committing to ALL pages at once
+                      leafCount:
+                        type: integer
+                        description: number of pages that resolved into a leaf (successful fetches)
+                      requested:
+                        type: integer
+                        description: number of urls accepted into the batch (after dedupe/cap)
+                      okCount:
+                        type: integer
+                        description: successful fetches (== leafCount)
+                      failCount:
+                        type: integer
+                        description: fetches that returned an honest ok:false (excluded from the tree)
+                      leafTag:
+                        type: string
+                        description: domain separator used for leaf hashing (verifier needs it)
+                      nodeTag:
+                        type: string
+                        description: domain separator used for internal-node hashing (verifier needs it)
+                      pages:
+                        type: array
+                        description: per-page result, in input order. Successful pages carry text + contentHash + a Merkle proof.
+                        items:
+                          type: object
+                          properties:
+                            index:
+                              type: integer
+                              description: leaf index in the snapshot (part of the signed leaf)
+                            url:
+                              type: string
+                              description: final URL after redirects (or the requested url on failure)
+                            ok:
+                              type: boolean
+                            status:
+                              type: integer
+                              description: upstream HTTP status
+                            title:
+                              type: string
+                              description: page <title> (HTML pages only)
+                            text:
+                              type: string
+                              description: cleaned page text/markdown (omitted on failure)
+                            contentHash:
+                              type: string
+                              description: 0x… sha256 of the page text (the leaf's content commitment)
+                            leafHash:
+                              type: string
+                              description: 0x… sha256 leaf node = H(leafTag|index|url|status|contentHash)
+                            proof:
+                              type: array
+                              description: 'Merkle audit path: fold this leafHash with each {side,hash} to recompute merkleRoot. Proves THIS page was a member of the signed batch WITHOUT disclosing the other pages.'
+                              items:
+                                type: object
+                                properties:
+                                  side:
+                                    type: string
+                                    enum:
+                                    - left
+                                    - right
+                                  hash:
+                                    type: string
+                            bytes:
+                              type: integer
+                              description: raw upstream body size
+                            contentType:
+                              type: string
+                            redirects:
+                              type: array
+                              items:
+                                type: string
+                            error:
+                              type: string
+                              description: present only when this page's ok:false
+                      dropped:
+                        type: array
+                        items:
+                          type: string
+                        description: 'urls dropped for exceeding the ≤20 cap (honest: we tell you what we capped)'
+                    additionalProperties: false
+                  error:
+                    type: string
+                    description: present only when ok:false (e.g. no urls supplied, or every page failed)
+                required:
+                - ok
+                - url
+                additionalProperties: false
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: urls
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 65536
+          description: comma- OR newline-separated list of pages to snapshot (http/https), ≤20 (deduped, capped). Each is fetched through the shared SSRF-guarded engine and becomes one Merkle leaf.
+        description: comma- OR newline-separated list of pages to snapshot (http/https), ≤20 (deduped, capped). Each is fetched through the shared SSRF-guarded engine and becomes one Merkle leaf.
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - text
+          - markdown
+          description: clean text (default) or structure-preserving markdown for every page
+        description: clean text (default) or structure-preserving markdown for every page
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.02
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.02
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

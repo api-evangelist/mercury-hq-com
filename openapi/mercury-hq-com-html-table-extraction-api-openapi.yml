@@ -1,0 +1,188 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Html Table Extraction API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged html-table-extraction across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: html-table-extraction
+paths:
+  /buy/table:
+    get:
+      summary: Cited Table — HTML table → typed JSON rows + CSV, with signed provenance…
+      description: 'URL in → the page''s main HTML
+
+        (s) parsed into typed, header-keyed rows (JSON) + clean RFC-4180 CSV, with a signed provenance receipt over the exact extracted grid. Deterministic, keyless, no LLM — x402, USDC on Base mainnet.'
+      operationId: buy_cited_table
+      tags:
+      - html-table-extraction
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true on success; false on an honest failure (still delivered, but 503-before-charge)
+                  url:
+                    type: string
+                    description: final URL after redirects
+                  status:
+                    type: integer
+                    description: upstream HTTP status
+                  text:
+                    type: string
+                    description: 'the canonical signed string: JSON.stringify(data, sorted-keys) — the exact bytes the provenance receipt covers'
+                  fetchedAt:
+                    type: string
+                    description: ISO timestamp of the fetch (also in the signed attestation)
+                  data:
+                    type: object
+                    description: the structured product the buyer consumes
+                    properties:
+                      title:
+                        type: string
+                        description: page <title>
+                      tableCount:
+                        type: integer
+                        description: number of data tables found on the page
+                      returned:
+                        type: integer
+                        description: number of tables returned in this response
+                      truncatedTables:
+                        type: boolean
+                        description: true if MAX_TABLES clipped the set
+                      tables:
+                        type: array
+                        description: each extracted table
+                        items:
+                          type: object
+                          properties:
+                            index:
+                              type: integer
+                              description: 0-based position in the document
+                            columns:
+                              type: array
+                              items:
+                                type: string
+                              description: ordered, de-duplicated column names (from <th>/first row)
+                            rowCount:
+                              type: integer
+                            ragged:
+                              type: boolean
+                              description: true if any row's cell count != header width (colspan/rowspan)
+                            rows:
+                              type: array
+                              description: header-keyed row objects (cell text)
+                              items:
+                                type: object
+                                additionalProperties:
+                                  type: string
+                            csv:
+                              type: string
+                              description: RFC-4180 CSV of this table (omitted when ?format=json)
+                  attestation:
+                    type: object
+                    description: EIP-191 provenance receipt over `text` (the canonical sorted-key JSON of the extracted grid), ecrecoverable OFFLINE (key at /.well-known/mercury-attestation). Proves the ROWS are genuine + untampered.
+                    properties:
+                      keyId:
+                        type: string
+                      alg:
+                        type: string
+                      address:
+                        type: string
+                      contentHash:
+                        type: string
+                      nonce:
+                        type: string
+                      signedAt:
+                        type: string
+                      signature:
+                        type: string
+                      verify:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                          howTo:
+                            type: string
+                  error:
+                    type: string
+                    description: present only when ok:false
+                required:
+                - ok
+                - url
+                additionalProperties: true
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 2048
+          description: the page to extract tables from (http/https)
+        description: the page to extract tables from (http/https)
+      - name: table
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 8
+          description: 'optional: 0-based index of a SINGLE table to return (document order). Omit to return ALL tables found (up to the cap).'
+        description: 'optional: 0-based index of a SINGLE table to return (document order). Omit to return ALL tables found (up to the cap).'
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - both
+          - json
+          - csv
+          description: 'optional: which serialisations to include in `data` (default: both).'
+        description: 'optional: which serialisations to include in `data` (default: both).'
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.006
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.006
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

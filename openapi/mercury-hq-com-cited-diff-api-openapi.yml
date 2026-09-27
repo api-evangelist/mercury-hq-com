@@ -1,0 +1,186 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Cited Diff API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged cited-diff across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: cited-diff
+paths:
+  /buy/diff:
+    get:
+      summary: MERCURY Cited Diff — signed web-change proof (refetch + verifiable…
+      description: 'URL + prior content-hash (or prior text) -> refetch, deterministic change-proof: changed? + a NEW signed receipt binding fromHash->toHash. Stateless; receipts chain into a tamper-evident audit trail of a page''s evolution. Keyless x402, Base mainnet USDC.'
+      operationId: buy_cited_diff
+      tags:
+      - cited-diff
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true on success; false on an honest failure (still delivered)
+                  url:
+                    type: string
+                    description: final URL after redirects
+                  status:
+                    type: integer
+                    description: upstream HTTP status of the refetch
+                  changed:
+                    type: boolean
+                    description: true if the new content hash differs from the prior reference
+                  fromHash:
+                    type: string
+                    description: the prior content hash compared against (0x sha256). null if only prevText with no derivable hash
+                  toHash:
+                    type: string
+                    description: the NEW content hash of the refetched text (0x sha256)
+                  comparedBy:
+                    type: string
+                    enum:
+                    - hash
+                    - text
+                    description: hash = prevHash supplied; text = prevText supplied (full line diff)
+                  diff:
+                    type: object
+                    description: deterministic line-level diff (present only when prevText was supplied)
+                    properties:
+                      added:
+                        type: integer
+                        description: number of added lines
+                      removed:
+                        type: integer
+                        description: number of removed lines
+                      hunks:
+                        type: array
+                        items:
+                          type: string
+                        description: unified-style +/- changed lines (bounded)
+                      truncated:
+                        type: boolean
+                        description: true if either side or the hunk list was capped
+                  text:
+                    type: string
+                    description: the canonical CHANGE CLAIM string the attestation signs over (the proof, not the page body)
+                  bytes:
+                    type: integer
+                    description: raw body size of the refetch
+                  contentType:
+                    type: string
+                  fetchedAt:
+                    type: string
+                    description: ISO timestamp of the refetch (also in the signed receipt)
+                  error:
+                    type: string
+                    description: present only when ok:false
+                  attestation:
+                    type: object
+                    description: EIP-191 provenance receipt over the canonical change claim (url+changed+fromHash+toHash+time). ecrecoverable OFFLINE (key at /.well-known/mercury-attestation). Proves the change/no-change between hash A and hash B is genuine; chains with the next call's receipt into an audit trail.
+                    properties:
+                      keyId:
+                        type: string
+                      alg:
+                        type: string
+                      address:
+                        type: string
+                      contentHash:
+                        type: string
+                      nonce:
+                        type: string
+                      signedAt:
+                        type: string
+                      signature:
+                        type: string
+                      verify:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                          howTo:
+                            type: string
+                required:
+                - ok
+                - url
+                additionalProperties: false
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 2048
+          description: the page to re-fetch + diff (http/https)
+        description: the page to re-fetch + diff (http/https)
+      - name: prevHash
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 66
+          description: prior content hash (0x + 64 hex sha256) from an earlier MERCURY fetch/diff receipt. Gives a hash-only change-proof (changed? true/false). Use this OR prevText.
+        description: prior content hash (0x + 64 hex sha256) from an earlier MERCURY fetch/diff receipt. Gives a hash-only change-proof (changed? true/false). Use this OR prevText.
+      - name: prevText
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 262144
+          description: prior page text to diff against. Gives a full deterministic line-level diff (added/removed counts + unified-style hunk) on top of the change-proof. Use this OR prevHash.
+        description: prior page text to diff against. Gives a full deterministic line-level diff (added/removed counts + unified-style hunk) on top of the change-proof. Use this OR prevHash.
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - text
+          - markdown
+          description: compare cleaned text (default) or structure-preserving markdown
+        description: compare cleaned text (default) or structure-preserving markdown
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.006
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.006
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

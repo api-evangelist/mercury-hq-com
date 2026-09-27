@@ -1,0 +1,36 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Data API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged data across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: Data
+paths:
+  /buy/signal:
+    get:
+      summary: signal
+      description: MERCURY Signals — free DEMO/sample read (sample data, not a live market read yet).
+      operationId: buy_signal
+      tags:
+      - Data
+      responses:
+        '200':
+          description: Free demo/sample data — no payment.
+      security: []
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

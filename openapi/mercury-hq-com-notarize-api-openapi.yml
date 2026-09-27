@@ -1,0 +1,143 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Notarize API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged notarize across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: notarize
+paths:
+  /buy/notarize:
+    get:
+      summary: MERCURY Cited Notarize
+      description: 'Notarize any content (inline ?content= or a fetched ?url=) into a signed, offline-verifiable provenance receipt — sha256 contentHash + witnessed timestamp, attested by Mercury''s pinned key. Deterministic, keyless, no LLM. The signed receipt is the product: it witnesses that these exact bytes existed in this exact form at this time (the one thing your own sha256() can''t — a third-party witness).'
+      operationId: buy_cited_notarize
+      tags:
+      - notarize
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true on success; false on an honest failure (never charged)
+                  url:
+                    type: string
+                    description: echo of the notarized source identifier (the url, or 'inline:content')
+                  status:
+                    type: integer
+                    description: 200 on success; upstream status when a fetched url failed
+                  text:
+                    type: string
+                    description: the CANONICAL notarization statement — the exact string the seller's EIP-191 receipt signs over. Newline-joined, fixed field order, reconstructable byte-for-byte for offline verification.
+                  data:
+                    type: object
+                    description: the structured notarization record the buyer consumes
+                    properties:
+                      algorithm:
+                        type: string
+                        description: the content-hash algorithm (sha256)
+                      contentHash:
+                        type: string
+                        description: 0x… sha256 hex of the exact notarized bytes
+                      byteLength:
+                        type: integer
+                        description: byte length of the notarized content (UTF-8)
+                      source:
+                        type: string
+                        description: 'where the content came from: the final url, or ''inline:content'''
+                      sourceKind:
+                        type: string
+                        enum:
+                        - url
+                        - inline
+                        description: url = fetched; inline = buyer-supplied
+                      witnessedAt:
+                        type: string
+                        description: ISO-8601 time Mercury witnessed (== fetchedAt of the read)
+                      statementVersion:
+                        type: string
+                        description: versioned notarization scheme id
+                      verify:
+                        type: object
+                        description: how to verify OFFLINE without Mercury's SDK
+                        properties:
+                          howTo:
+                            type: string
+                          wellKnown:
+                            type: string
+                            description: where the witness key is publicly pinned
+                    additionalProperties: false
+                  fetchedAt:
+                    type: string
+                    description: ISO-8601 witness time (mirrors data.witnessedAt)
+                  error:
+                    type: string
+                    description: present only when ok:false
+                required:
+                - ok
+                - url
+                additionalProperties: false
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: url
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 2048
+          description: a page (http/https) to fetch + notarize its cleaned text. Provide EITHER url OR content, not both.
+        description: a page (http/https) to fetch + notarize its cleaned text. Provide EITHER url OR content, not both.
+      - name: content
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 262144
+          description: inline content (UTF-8, ≤256KB) to notarize directly — bytes you already hold. Provide EITHER url OR content, not both.
+        description: inline content (UTF-8, ≤256KB) to notarize directly — bytes you already hold. Provide EITHER url OR content, not both.
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.008
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.008
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

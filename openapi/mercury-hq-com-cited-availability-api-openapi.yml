@@ -1,0 +1,146 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Cited Availability API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged cited-availability across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: cited-availability
+paths:
+  /buy/availability:
+    get:
+      summary: MERCURY Cited Availability Probe
+      description: 'URL → a signed uptime/status probe: up/down, HTTP status + class, reachability reason, final URL after redirects, and a measured responseMs — wrapped in an offline-verifiable provenance receipt that makes "it was up/down at T" provable SLA evidence. Deterministic verdict (responseMs is telemetry, not signed). Keyless, no LLM, no signup.'
+      operationId: buy_cited_availability
+      tags:
+      - cited-availability
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true once the PROBE completed (the host was reached at the network/HTTP layer); false only when the probe itself could not be performed against a reachable host
+                  url:
+                    type: string
+                    description: final URL after redirects (or the requested URL when unreachable)
+                  status:
+                    type:
+                    - integer
+                    - 'null'
+                    description: upstream HTTP status observed (null when the host never responded)
+                  text:
+                    type: string
+                    description: canonical sorted-key JSON of the signed verdict — the exact string the receipt signs over (responseMs deliberately excluded for determinism)
+                  fetchedAt:
+                    type: string
+                    description: ISO-8601 probe time (provenance metadata bound by the receipt)
+                  data:
+                    type: object
+                    description: the deterministic availability verdict
+                    properties:
+                      up:
+                        type: boolean
+                        description: true iff the host responded with a non-error class (2xx/3xx)
+                      reachable:
+                        type: boolean
+                        description: true iff the host produced ANY HTTP response (a 4xx/5xx host is reachable but not up)
+                      httpStatus:
+                        type:
+                        - integer
+                        - 'null'
+                        description: the observed HTTP status, or null when unreachable
+                      responseClass:
+                        type: string
+                        enum:
+                        - 1xx-informational
+                        - 2xx-success
+                        - 3xx-redirect
+                        - 4xx-client-error
+                        - 5xx-server-error
+                        - unknown
+                        - none
+                      reason:
+                        type: string
+                        description: 'stable reachability category: ok | <http class> | dns-failure | timeout | connection-refused | connection-reset | tls-error | redirect-loop | blocked-ssrf | invalid-url | unreachable'
+                      responseMs:
+                        type:
+                        - integer
+                        - 'null'
+                        description: measured round-trip ms (TELEMETRY — NOT part of the signed text; non-deterministic by nature)
+                      rubric:
+                        type: string
+                        description: verdict rubric version id
+                    required:
+                    - up
+                    - reachable
+                    - httpStatus
+                    - responseClass
+                    - reason
+                    - rubric
+                    additionalProperties: false
+                  attestation:
+                    type: object
+                    description: EIP-191 provenance receipt over the canonical verdict text — verifiable OFFLINE by anyone (key pinned at /.well-known/mercury-attestation). Proves MERCURY observed THIS up/down + status at THIS time. The SLA-evidence wedge a free uptime checker structurally cannot emit.
+                  error:
+                    type: string
+                    description: present only when ok:false (the probe could not be performed)
+                required:
+                - ok
+                - url
+                additionalProperties: true
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 2048
+          description: the endpoint/page to probe for availability (http/https)
+        description: the endpoint/page to probe for availability (http/https)
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.005
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.005
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

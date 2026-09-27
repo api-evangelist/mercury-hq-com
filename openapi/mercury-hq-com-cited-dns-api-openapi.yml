@@ -1,0 +1,188 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Cited Dns API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged cited-dns across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: cited-dns
+paths:
+  /buy/dns:
+    get:
+      summary: MERCURY Cited DNS Snapshot
+      description: Domain → a SIGNED, timestamped DNS snapshot (A, AAAA, MX, NS, TXT, CNAME, SOA), normalised + sorted into a byte-stable record set with an offline-verifiable provenance receipt — proving exactly what the zone resolved to at that moment. Keyless, no LLM, no signup. (Normalisation is deterministic; DNS itself is mutable across time/TTL/geo — which is the very reason the snapshot is timestamped + signed.)
+      operationId: buy_cited_dns
+      tags:
+      - cited-dns
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true on success; false on an honest failure (never charged for a stub)
+                  url:
+                    type: string
+                    description: the resolved domain (echoed in the `url` field for gate uniformity)
+                  domain:
+                    type: string
+                    description: the normalised, lower-cased, trailing-dot-stripped domain that was resolved
+                  status:
+                    type: integer
+                    description: 200 on a successful resolve (HTTP-shaped status for gate uniformity)
+                  text:
+                    type: string
+                    description: canonical sorted-key JSON of `data` — the exact string the receipt signs over
+                  resolvedAt:
+                    type: string
+                    description: ISO-8601 resolve time (provenance metadata; binds WHEN the snapshot was taken)
+                  fetchedAt:
+                    type: string
+                    description: alias of resolvedAt for gate/receipt uniformity
+                  data:
+                    type: object
+                    description: the deterministic, normalised DNS snapshot
+                    properties:
+                      domain:
+                        type: string
+                      resolver:
+                        description: pinned resolver IPs used, or 'system'
+                        type:
+                        - array
+                        - string
+                        items:
+                          type: string
+                      records:
+                        type: object
+                        description: normalised record sets keyed by type (A, AAAA, MX, NS, TXT, CNAME, SOA); sorted + de-duplicated
+                        properties:
+                          A:
+                            type: array
+                            items:
+                              type: string
+                          AAAA:
+                            type: array
+                            items:
+                              type: string
+                          MX:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                priority:
+                                  type: integer
+                                exchange:
+                                  type: string
+                          NS:
+                            type: array
+                            items:
+                              type: string
+                          TXT:
+                            type: array
+                            items:
+                              type: string
+                          CNAME:
+                            type: array
+                            items:
+                              type: string
+                          SOA:
+                            type:
+                            - object
+                            - 'null'
+                            properties:
+                              nsname:
+                                type: string
+                              hostmaster:
+                                type: string
+                              serial:
+                                type: integer
+                              refresh:
+                                type: integer
+                              retry:
+                                type: integer
+                              expire:
+                                type: integer
+                              minttl:
+                                type: integer
+                      summary:
+                        type: object
+                        description: record counts per type (derived, deterministic)
+                      flags:
+                        type: object
+                        description: derived convenience flags (hasSpf, hasDmarc) pointing into TXT
+                      partialErrors:
+                        type: object
+                        description: present only if a record type had a transport error; never fabricated data
+                      snapshot:
+                        type: string
+                        description: 'rubric/version tag: mercury-cited-dns-v1'
+                  error:
+                    type: string
+                    description: present only when ok:false
+                required:
+                - ok
+                - url
+                additionalProperties: true
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: domain
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 253
+          description: the domain to resolve (e.g. example.com). A full URL is also accepted; its hostname is used.
+        description: the domain to resolve (e.g. example.com). A full URL is also accepted; its hostname is used.
+      - name: url
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 2048
+          description: alternative to ?domain= — any http/https URL; the registrable hostname is resolved.
+        description: alternative to ?domain= — any http/https URL; the registrable hostname is resolved.
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.006
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.006
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

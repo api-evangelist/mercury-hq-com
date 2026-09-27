@@ -1,0 +1,156 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Cited Readability API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged cited-readability across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: cited-readability
+paths:
+  /buy/readability:
+    get:
+      summary: MERCURY Cited Readability
+      description: 'URL → a clean ARTICLE record { title, byline, publishedAt, article text } with boilerplate (nav/header/footer/sidebar/ads/share-bars/comment-forms) stripped via deterministic DOM density heuristics, plus a signed provenance receipt pinning the cleaned article to its source — the clean-citation primitive distinct from raw markdown. Deterministic (no LLM): same URL + same source bytes ⇒ byte-identical output.'
+      operationId: buy_cited_readability
+      tags:
+      - cited-readability
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true on success; false on an honest failure (503-before-charge — you are NOT billed)
+                  url:
+                    type: string
+                    description: final URL after redirects
+                  status:
+                    type: integer
+                    description: upstream HTTP status
+                  text:
+                    type: string
+                    description: 'the canonical signed string: JSON.stringify(data, sortedKeys). The EIP-191 attestation signs THIS, so the buyer can prove the WHOLE article record (title+byline+date+body) is exactly what MERCURY extracted from this url at this time.'
+                  fetchedAt:
+                    type: string
+                    description: ISO-8601 fetch time (also folded into the signed receipt)
+                  data:
+                    type: object
+                    description: the structured article record the buyer consumes
+                    properties:
+                      title:
+                        type:
+                        - string
+                        - 'null'
+                        description: article headline (JSON-LD headline/name → og:title → <title>)
+                      byline:
+                        type:
+                        - string
+                        - 'null'
+                        description: author/byline (JSON-LD author → article:author/author meta), 'By ' prefix stripped
+                      publishedAt:
+                        type:
+                        - string
+                        - 'null'
+                        description: publish date, ISO-8601 when parseable (JSON-LD datePublished → article:published_time); raw string if present but un-parseable; null if absent
+                      siteName:
+                        type:
+                        - string
+                        - 'null'
+                        description: publication / site name (og:site_name) when present
+                      excerpt:
+                        type:
+                        - string
+                        - 'null'
+                        description: page description (meta/og) or the first ~280 chars of the body — a citation card
+                      articleText:
+                        type: string
+                        description: the cleaned article body prose, boilerplate stripped
+                      wordCount:
+                        type: integer
+                        description: word count of the cleaned article body (for chunk/cost budgeting)
+                      extractedBy:
+                        type: string
+                        enum:
+                        - landmark
+                        - density
+                        - fallback
+                        description: which deterministic strategy isolated the body (article/main landmark, density scorer, or whole-body fallback)
+                      contentType:
+                        type: string
+                      bytes:
+                        type: integer
+                        description: raw upstream body size
+                      truncated:
+                        type: boolean
+                        description: true if the cleaned article hit the text cap
+                      redirects:
+                        type: array
+                        items:
+                          type: string
+                        description: redirect chain followed
+                    additionalProperties: false
+                  error:
+                    type: string
+                    description: present only when ok:false
+                  attestation:
+                    type: object
+                    description: EIP-191 provenance receipt over sha256(text)+url+status+time, verifiable OFFLINE by anyone (key pinned at /.well-known/mercury-attestation). Proves THIS article record is exactly what MERCURY extracted from THIS url at THIS time — the wedge a free reader cannot emit.
+                required:
+                - ok
+                - url
+                additionalProperties: false
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 2048
+          description: the article page to extract (http/https)
+        description: the article page to extract (http/https)
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.005
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.005
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

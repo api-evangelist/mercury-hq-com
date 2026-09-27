@@ -1,0 +1,192 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Cited Sitemap API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged cited-sitemap across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: cited-sitemap
+paths:
+  /buy/sitemap:
+    get:
+      summary: MERCURY Cited Sitemap
+      description: 'Domain/URL → a SIGNED snapshot of the site''s PUBLISHED sitemap: discovers the sitemap via robots.txt Sitemap: lines then /sitemap.xml fallback, parses + (follows up to 5 child sitemaps), returns a deduped, bounded (≤2000) URL inventory with lastmod/changefreq/priority. The receipt signs the DECLARED URL list (deterministic — same sitemap bytes ⇒ byte-identical list). Optional ?fetch=N (≤10) adds a HARD-BOUNDED same-domain liveness probe (title+status+bytes per URL) — that probe is the ONLY non-deterministic part and is NOT covered by the signature. SSRF-guarded; the crawl is bounded at every axis.'
+      operationId: buy_cited_sitemap
+      tags:
+      - cited-sitemap
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true on success; false on an honest failure (still delivered)
+                  url:
+                    type: string
+                    description: the sitemap URL that was fetched + parsed
+                  status:
+                    type: integer
+                    description: upstream HTTP status of the sitemap fetch
+                  data:
+                    type: object
+                    description: the structured sitemap snapshot (the product the buyer consumes)
+                    properties:
+                      origin:
+                        type: string
+                        description: scheme://host the sitemap was discovered for
+                      sitemapUrl:
+                        type: string
+                        description: the sitemap that was parsed
+                      discoveredVia:
+                        type: string
+                        enum:
+                        - robots.txt
+                        - sitemap.xml
+                        - input
+                        description: 'how the sitemap was located (robots Sitemap: line / conventional path / direct input)'
+                      robotsSitemaps:
+                        type: array
+                        description: 'all Sitemap: URLs robots.txt declared (may be > the one parsed)'
+                        items:
+                          type: string
+                      kind:
+                        type: string
+                        enum:
+                        - urlset
+                        - sitemapindex
+                        - unknown
+                        description: which sitemap schema was parsed
+                      childSitemaps:
+                        type: array
+                        description: child sitemaps followed from a <sitemapindex> (bounded to 5)
+                        items:
+                          type: string
+                      total:
+                        type: integer
+                        description: number of unique page URLs returned
+                      truncated:
+                        type: boolean
+                        description: true if the site declared more URLs than the 2000 cap / requested limit
+                      urls:
+                        type: array
+                        description: the published URL inventory (deduped, origin-then-loc sorted)
+                        items:
+                          type: object
+                          properties:
+                            loc:
+                              type: string
+                              description: absolute page URL
+                            lastmod:
+                              type: string
+                              description: declared last-modified (only if present)
+                            changefreq:
+                              type: string
+                              description: declared change frequency (only if present)
+                            priority:
+                              type: string
+                              description: declared crawl priority (only if present)
+                      probe:
+                        type: array
+                        description: 'OPTIONAL liveness sample (?fetch=N): first N same-domain URLs shallow-fetched. NOT covered by the signed receipt — live status can change between calls.'
+                        items:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                            ok:
+                              type: boolean
+                            status:
+                              type: integer
+                            title:
+                              type: string
+                            bytes:
+                              type: integer
+                            error:
+                              type: string
+                              description: present only when that URL failed
+                  text:
+                    type: string
+                    description: 'canonical newline string the signed receipt covers: one URL per line, origin-then-loc sorted (the DECLARED inventory only — never the live-probe sample, so it is reproducible)'
+                  contentType:
+                    type: string
+                  fetchedAt:
+                    type: string
+                    description: ISO8601 fetch time (in the signed payload)
+                  error:
+                    type: string
+                    description: present only when ok:false
+                required:
+                - ok
+                - url
+                additionalProperties: false
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 2048
+          description: a domain (example.com) or any URL on the site — only its origin is used
+        description: a domain (example.com) or any URL on the site — only its origin is used
+      - name: fetch
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 3
+          description: 'optional N (0–10): also shallow-fetch the first N same-domain sitemap URLs and report each one''s live title + HTTP status + byte size (liveness sample). NOT covered by the signed receipt (it can change between calls). Default 0 = off.'
+        description: 'optional N (0–10): also shallow-fetch the first N same-domain sitemap URLs and report each one''s live title + HTTP status + byte size (liveness sample). NOT covered by the signed receipt (it can change between calls). Default 0 = off.'
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 4
+          description: optional cap on URLs returned (1–2000); default returns all up to 2000
+        description: optional cap on URLs returned (1–2000); default returns all up to 2000
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.01
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.01
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

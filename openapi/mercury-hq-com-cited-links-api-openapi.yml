@@ -1,0 +1,152 @@
+openapi: 3.2.0
+info:
+  title: Mercury Hq Com Cited Links API
+  version: '1'
+  x-spec: mercury-storefront/1
+  description: 'Operations tagged cited-links across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://network.mercury-hq.com
+tags:
+- name: cited-links
+paths:
+  /buy/links:
+    get:
+      summary: MERCURY Cited Links
+      description: 'URL → a SIGNED outbound/internal link graph: every as an absolute URL + anchor text, classified internal vs external against the page origin, grouped by origin with a third-party-origin histogram (privacy-audit) and same/cross-origin counts (SEO). Deterministic — same page bytes ⇒ byte-identical graph; no LLM. Covers hyperlinks only (not rel/asset tags). Receipt = EIP-191 over the graph.'
+      operationId: buy_cited_links
+      tags:
+      - cited-links
+      responses:
+        '200':
+          description: Delivered after the x402 payment settles on Base mainnet.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    description: true on success; false on an honest failure (still delivered)
+                  url:
+                    type: string
+                    description: final URL after redirects (the graph origin)
+                  status:
+                    type: integer
+                    description: upstream HTTP status
+                  data:
+                    type: object
+                    description: the structured link graph (the product the buyer consumes)
+                    properties:
+                      pageOrigin:
+                        type: string
+                        description: scheme://host of the final page — the reference origin
+                      total:
+                        type: integer
+                        description: number of unique outbound <a href> links
+                      internalCount:
+                        type: integer
+                        description: links to the same registrable host (www-insensitive)
+                      externalCount:
+                        type: integer
+                        description: links to a different host
+                      originCount:
+                        type: integer
+                        description: number of distinct link origins
+                      links:
+                        type: array
+                        description: 'every link: absolute url, anchor text, its origin, and internal/external'
+                        items:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                            text:
+                              type: string
+                              description: anchor text (may be empty for image/icon links)
+                            origin:
+                              type: string
+                              description: scheme://host of this link
+                            internal:
+                              type: boolean
+                              description: true if same registrable host as the page
+                      byOrigin:
+                        type: array
+                        description: links grouped by origin, descending by count (SEO + competitor map)
+                        items:
+                          type: object
+                          properties:
+                            origin:
+                              type: string
+                            count:
+                              type: integer
+                            internal:
+                              type: boolean
+                      thirdPartyOrigins:
+                        type: array
+                        description: distinct EXTERNAL origins only — the privacy-audit / data-leak surface
+                        items:
+                          type: string
+                  text:
+                    type: string
+                    description: canonical newline string the signed receipt covers (one `text\turl` row per link, origin-sorted)
+                  contentType:
+                    type: string
+                  fetchedAt:
+                    type: string
+                    description: ISO8601 fetch time (in the signed payload)
+                  error:
+                    type: string
+                    description: present only when ok:false
+                required:
+                - ok
+                - url
+                additionalProperties: false
+        '402':
+          description: Payment Required — retry with an x402-signed payment (e.g. x402-fetch). Terms are in the challenge body (x402 v1).
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 2048
+          description: the page to map (http/https)
+        description: the page to map (http/https)
+      x-payment-info:
+        protocols:
+        - x402
+        scheme: exact
+        price: $0.005
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        testnet: false
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        x402Version: 1
+      x-x402:
+        scheme: exact
+        price: $0.005
+        currency: USDC
+        network: base
+        networkCaip2: eip155:8453
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+        facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+        testnet: false
+        maxTimeoutSeconds: 60
+    servers:
+    - url: https://network.mercury-hq.com
+x-refined-from:
+- mercury-hq-com-x402-storefront-openapi.json
+- mercury-hq-com-x402-storefront-openapi.yml
+x-payment-info:
+  protocols:
+  - x402
+  network: base
+  currency: USDC
+  payTo: '0xe10B9d44e72A29B9c19da02981FFCd875308e3C1'
+  facilitator: https://api.cdp.coinbase.com/platform/v2/x402
+  testnet: false
+  spec: mercury-storefront/1

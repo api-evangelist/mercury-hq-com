@@ -1,9 +1,9 @@
 openapi: 3.2.0
 info:
-  title: Mercury Hq Com Robots Txt API
+  title: MERCURY x402 storefront Robots Txt API
   version: '1'
   x-spec: mercury-storefront/1
-  description: 'Operations tagged robots-txt across 2 of this provider''s published API definitions: mercury-hq-com-x402-storefront-openapi.json, mercury-hq-com-x402-storefront-openapi.yml. Each path carries the servers of the definition it was published in.'
+  description: Agent-payable resources over HTTP 402 (x402). LIVE — Base mainnet, real USDC, no token. Only currently-deliverable routes are listed (web-fetch is the live paid SKU; mints are gated off). Free discovery at /.well-known/x402, /x402/discovery, /catalog, and /manifest.
 servers:
 - url: https://network.mercury-hq.com
 tags:
@@ -161,11 +161,6 @@ paths:
         facilitator: https://api.cdp.coinbase.com/platform/v2/x402
         testnet: false
         maxTimeoutSeconds: 60
-    servers:
-    - url: https://network.mercury-hq.com
-x-refined-from:
-- mercury-hq-com-x402-storefront-openapi.json
-- mercury-hq-com-x402-storefront-openapi.yml
 x-payment-info:
   protocols:
   - x402

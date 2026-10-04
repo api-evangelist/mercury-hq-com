@@ -590,6 +590,8 @@ apis:
   humanURL: https://network.mercury-hq.com/university/docs
   baseURL: https://network.mercury-hq.com
   tags:
+  - Data
+  tags_raw:
   - data
   properties:
   - type: OpenAPI
@@ -750,6 +752,8 @@ apis:
   humanURL: https://network.mercury-hq.com/university/docs
   baseURL: https://network.mercury-hq.com
   tags:
+  - Robots.txt
+  tags_raw:
   - robots-txt
   properties:
   - type: OpenAPI
@@ -791,6 +795,8 @@ apis:
   humanURL: https://network.mercury-hq.com/university/docs
   baseURL: https://network.mercury-hq.com
   tags:
+  - Structured Data Extraction
+  tags_raw:
   - structured-data-extraction
   properties:
   - type: OpenAPI

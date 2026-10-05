@@ -1,0 +1,12 @@
+{
+ "url": "https://network.mercury-hq.com/openapi.json",
+ "requested_url": "https://network.mercury-hq.com/openapi.json",
+ "status": 200,
+ "content_type": "application/json; charset=utf-8",
+ "bytes": 86666,
+ "sha256": "211aa7db24ae0df44e0f57c9ad54a91a74c6db1895467a4606028edfe7e2c063",
+ "fetched_at": "2026-10-04",
+ "fetched_by": "APIEvangelist-Harvest/1.0 (+https://apievangelist.com)",
+ "match": "equivalent",
+ "note": "Re-fetched from the provider by verify-openapi-sources.py; the provider's current document describes the same operations (Jaccard 1.0), but the bytes differ, so the archive is an earlier or reformatted copy."
+}
